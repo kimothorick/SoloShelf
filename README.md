@@ -75,7 +75,7 @@ To build and run this app locally:
 
 ## 🤝 Contributing
 
-Contributions are welcome, but please note the project is currently **unstable**.
+Contributions are not being accepted at the moment as the project is in early development. It will be open for contributions once it is launched.
 
 If you'd like to help:
 1.  Check the [Issues](https://github.com/yourusername/soloshelf/issues) tab for "Good First Issue" tags.
