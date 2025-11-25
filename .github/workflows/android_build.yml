@@ -56,7 +56,7 @@ jobs:
           script: ./gradlew connectedAndroidTest
 
       - name: upload reports
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: reports
           path: app/build/reports/androidTests/connected/
