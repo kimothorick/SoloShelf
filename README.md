@@ -1,7 +1,6 @@
 # 📚 SoloShelf
 
-> [!IMPORTANT]  
-> Crucial information necessary for users to succeed.
+> [!IMPORTANT]
 > 
 > This project is currently in early active development.
 > Features may be incomplete, and breaking changes are expected. Data structure is subject to change.
