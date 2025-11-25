@@ -21,19 +21,29 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface BookDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertBook(book: Book)
+    suspend fun insertBook(
+        book: Book,
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertBookmark(bookmark: Bookmark)
+    suspend fun insertBookmark(
+        bookmark: Bookmark,
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertReadingProgress(progress: ReadingProgress)
+    suspend fun insertReadingProgress(
+        progress: ReadingProgress,
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertHighlight(highlight: Highlight)
+    suspend fun insertHighlight(
+        highlight: Highlight,
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertNote(note: Note)
+    suspend fun insertNote(
+        note: Note,
+    )
 
     @Query("SELECT * FROM books")
     fun getBooks(): PagingSource<Int, Book>
@@ -43,16 +53,24 @@ interface BookDao {
 
     @Transaction
     @Query("SELECT * FROM books WHERE bookId = :id")
-    fun getBookWithBookmarks(id: Long): Flow<BookWithBookmarks?>
+    fun getBookWithBookmarks(
+        id: Long,
+    ): Flow<BookWithBookmarks?>
 
     @Transaction
     @Query("SELECT * FROM books WHERE bookId = :id")
-    fun getBookWithHighlights(id: Long): Flow<BookWithHighlights?>
+    fun getBookWithHighlights(
+        id: Long,
+    ): Flow<BookWithHighlights?>
 
     @Transaction
     @Query("SELECT * FROM books WHERE bookId = :id")
-    fun getBookWithNotes(id: Long): Flow<BookWithNotes?>
+    fun getBookWithNotes(
+        id: Long,
+    ): Flow<BookWithNotes?>
 
     @Delete
-    suspend fun deleteBook(book: Book)
+    suspend fun deleteBook(
+        book: Book,
+    )
 }

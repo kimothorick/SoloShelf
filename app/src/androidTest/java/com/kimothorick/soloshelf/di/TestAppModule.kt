@@ -15,26 +15,29 @@ import javax.inject.Singleton
 @Module
 @TestInstallIn(
     components = [SingletonComponent::class],
-    replaces = [AppModule::class]
+    replaces = [AppModule::class],
 )
 object TestAppModule {
+    @Provides
+    @Singleton
+    fun provideInMemoryBookDatabase(
+        @ApplicationContext context: Context,
+    ): BookDatabase =
+        Room
+            .inMemoryDatabaseBuilder(
+                context,
+                BookDatabase::class.java,
+            ).allowMainThreadQueries()
+            .build()
+
+    @Provides
+    fun provideBookDao(
+        database: BookDatabase,
+    ): BookDao = database.bookDao()
 
     @Provides
     @Singleton
-    fun provideInMemoryBookDatabase(@ApplicationContext context: Context): BookDatabase {
-        return Room.inMemoryDatabaseBuilder(
-            context, BookDatabase::class.java
-        ).allowMainThreadQueries().build()
-    }
-
-    @Provides
-    fun provideBookDao(database: BookDatabase): BookDao {
-        return database.bookDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideBookRepository(bookDao: BookDao): BookRepository {
-        return BookRepository(bookDao)
-    }
+    fun provideBookRepository(
+        bookDao: BookDao,
+    ): BookRepository = BookRepository(bookDao)
 }
