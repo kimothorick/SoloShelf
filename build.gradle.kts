@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.detekt).apply(true)
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.kotlin.ksp) apply false
+    alias(libs.plugins.hilt) apply false
 }
 
 apply(from = "buildscripts/git-hooks.gradle.kts")
