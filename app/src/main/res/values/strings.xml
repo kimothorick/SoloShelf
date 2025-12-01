@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">SoloShelf</string>
+    <string name="welcome_to_soloshelf">Welcome to 
+SoloShelf</string>
+    <string name="soloshelf_description">This is your private, offline-first home for every ebook and audiobook you own, built for simplicity and complete ownership.</string>
+    <string name="get_started">Get Started</string>
+    <string name="app_icon">App Icon</string>
+    <string name="back">Back</string>
+    <string name="skip">Skip</string>
+    <string name="grant_permission">Enable Notifications</string>
+    <string name="grant_permission_success">Permission granted</string>
+    <string name="grant_permission_denied">Permission denied</string>
+    <string name="grant_permission_denied_forever">Grant Permission in settings</string>
+    <string name="onboarding_notification_title">Notifications</string>
+    <string name="onboarding_notification_description">
+        Enable notifications to conveniently manage audiobook playback with controls on your lock screen, allowing you to see what\'s playing and make adjustments without having to reopen the app.
+    </string>
+
 </resources>

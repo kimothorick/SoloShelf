@@ -95,6 +95,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
 
     implementation(libs.coil.compose)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // Room
     implementation(libs.androidx.room.runtime)
