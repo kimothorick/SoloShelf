@@ -14,7 +14,7 @@ import javax.inject.Singleton
 object DataModule {
     @Provides
     @Singleton
-    fun provideUserPreferencesRepository(@ApplicationContext context: Context): UserPreferencesRepository {
-        return UserPreferencesRepository(context)
-    }
+    fun provideUserPreferencesRepository(
+        @ApplicationContext context: Context,
+    ): UserPreferencesRepository = UserPreferencesRepository(context)
 }

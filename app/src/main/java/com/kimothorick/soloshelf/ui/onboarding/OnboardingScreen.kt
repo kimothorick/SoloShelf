@@ -1,6 +1,8 @@
 package com.kimothorick.soloshelf.ui.onboarding
 
-import android.content.res.Configuration
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -29,6 +33,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,12 +48,131 @@ import androidx.compose.ui.unit.dp
 import com.kimothorick.soloshelf.R
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
 import com.kimothorick.soloshelf.ui.theme.extendedColors
+import kotlinx.coroutines.launch
 
 enum class PermissionState {
     IDLE,
     GRANTED,
     DENIED,
     DENIED_FOREVER,
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun OnboardingScreen(
+    onOnboardingFinished: () -> Unit,
+    onGrantNotificationPermissionClicked: () -> Unit,
+    notificationPermissionState: PermissionState,
+    onGrantAudioPermissionClicked: () -> Unit,
+    audioPermissionState: PermissionState,
+) {
+    val pagerState = rememberPagerState(pageCount = { 3 })
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(bottom = 16.dp),
+    ) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.weight(1f),
+        ) { page ->
+            when (page) {
+                0 -> WelcomeScreen(nextScreen = { scope.launch { pagerState.animateScrollToPage(1) } })
+
+                1 -> PermissionScreenContent(
+                    title = R.string.onboarding_notification_title,
+                    description = R.string.onboarding_notification_description,
+                    grantPermissionButtonText = R.string.grant_permission,
+                    onGrantPermissionClicked = onGrantNotificationPermissionClicked,
+                    permissionState = notificationPermissionState,
+                    imageDrawable = R.drawable.onboarding_app_showcase_cropped,
+                )
+
+                2 -> PermissionScreenContent(
+                    title = R.string.onboarding_audio_permission_title,
+                    description = R.string.onboarding_audio_permission_description,
+                    grantPermissionButtonText = R.string.grant_audio_permission,
+                    onGrantPermissionClicked = onGrantAudioPermissionClicked,
+                    permissionState = audioPermissionState,
+                    imageDrawable = R.drawable.onboarding_app_showcase_cropped,
+                )
+            }
+        }
+
+        val currentPage = pagerState.currentPage
+
+        if (currentPage != 0) {
+            OnboardingBottomBar(
+                onNextClicked = {
+                    if (currentPage < pagerState.pageCount - 1) {
+                        scope.launch { pagerState.animateScrollToPage(currentPage + 1) }
+                    } else {
+                        onOnboardingFinished()
+                    }
+                },
+                nextButtonText = when (currentPage) {
+                    1 -> R.string.next
+                    else -> R.string.finish
+                },
+                onBackClicked = if (currentPage > 0) {
+                    {
+                        scope.launch { pagerState.animateScrollToPage(currentPage - 1) }
+                    }
+                } else {
+                    null
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun OnboardingBottomBar(
+    onNextClicked: () -> Unit,
+    @StringRes nextButtonText: Int,
+    onBackClicked: (() -> Unit)? = null,
+) {
+    Column(modifier = Modifier.padding(bottom = 8.dp)) {
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (onBackClicked != null) {
+                OutlinedButton(
+                    onClick = onBackClicked,
+                ) {
+                    Text(stringResource(R.string.back))
+                }
+            }
+            Spacer(
+                modifier = Modifier.weight(1f),
+            )
+            Button(
+                onClick = onNextClicked,
+                colors = if (nextButtonText == R.string.finish) {
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary,
+                    )
+                } else {
+                    ButtonDefaults.buttonColors()
+                },
+            ) {
+                Text(stringResource(nextButtonText))
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -58,7 +182,11 @@ fun WelcomeScreen(
     nextScreen: () -> Unit,
 ) {
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(bottom = 8.dp),
         contentAlignment = Alignment.BottomEnd,
     ) {
         Column(
@@ -110,14 +238,17 @@ fun WelcomeScreen(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun NotificationPermissionScreen(
+private fun PermissionScreenContent(
+    @StringRes title: Int,
+    @StringRes description: Int,
+    @StringRes grantPermissionButtonText: Int,
     onGrantPermissionClicked: () -> Unit,
     permissionState: PermissionState,
-    onSkipClicked: () -> Unit,
-    onBackClicked: () -> Unit,
+    modifier: Modifier = Modifier,
+    @DrawableRes imageDrawable: Int? = null,
 ) {
     val permissionStateMessage = when (permissionState) {
-        PermissionState.IDLE -> R.string.grant_permission
+        PermissionState.IDLE -> grantPermissionButtonText
         PermissionState.GRANTED -> R.string.grant_permission_success
         PermissionState.DENIED -> R.string.grant_permission_denied
         PermissionState.DENIED_FOREVER -> R.string.grant_permission_denied_forever
@@ -130,20 +261,14 @@ fun NotificationPermissionScreen(
     }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .padding(bottom = 8.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        if (imageDrawable != null) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,8 +276,8 @@ fun NotificationPermissionScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.onboarding_app_showcase_cropped),
-                    contentDescription = stringResource(R.string.app_icon),
+                    painter = painterResource(id = imageDrawable),
+                    contentDescription = null,
                     modifier = Modifier.fillMaxWidth(0.6f),
                 )
 
@@ -170,130 +295,86 @@ fun NotificationPermissionScreen(
                         ),
                 )
             }
-            Text(
-                text = stringResource(R.string.onboarding_notification_title),
-                style = MaterialTheme.typography.headlineLargeEmphasized,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.onboarding_notification_description),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(
-                onClick = onGrantPermissionClicked,
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = containerColor,
-                    contentColor = contentColor,
-                ),
-            ) {
-                Text(stringResource(permissionStateMessage))
-            }
         }
-
-        Column {
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                OutlinedButton(
-                    onClick = onBackClicked,
-                ) {
-                    Text(stringResource(R.string.back))
-                }
-                Spacer(
-                    modifier = Modifier.weight(1f),
-                )
-                Button(
-                    onClick = onSkipClicked,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                        contentColor = MaterialTheme.colorScheme.onSecondary,
-                    ),
-                ) {
-                    Text(stringResource(R.string.skip))
-                }
-            }
+        Text(
+            text = stringResource(title),
+            style = MaterialTheme.typography.headlineLargeEmphasized,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(description),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = onGrantPermissionClicked,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = containerColor,
+                contentColor = contentColor,
+            ),
+        ) {
+            Text(stringResource(permissionStateMessage))
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Preview(showSystemUi = true)
-@Preview(showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(showSystemUi = true, device = "spec:orientation=landscape,width=411dp,height=891dp")
 @Composable
 fun WelcomeScreenPreview() {
     SoloShelfTheme {
         Surface {
-            WelcomeScreen(nextScreen = {})
-        }
-    }
-}
-
-@Composable
-fun NotificationPermissionScreenPreview(
-    permissionState: PermissionState,
-) {
-    SoloShelfTheme {
-        Surface {
-            NotificationPermissionScreen(
-                onGrantPermissionClicked = {},
-                permissionState = permissionState,
-                onSkipClicked = {},
-                onBackClicked = {},
-            )
+            Column(modifier = Modifier.fillMaxSize()) {
+                WelcomeScreen(modifier = Modifier.weight(1f), nextScreen = {})
+            }
         }
     }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
-@Preview(showBackground = true, showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(showBackground = true, showSystemUi = true, device = "spec:orientation=landscape,width=411dp,height=891dp")
 @Composable
 fun NotificationPermissionsScreenIdlePreview() {
-    NotificationPermissionScreenPreview(
-        permissionState = PermissionState.IDLE,
-    )
+    SoloShelfTheme {
+        Surface {
+            Column(modifier = Modifier.fillMaxSize()) {
+                PermissionScreenContent(
+                    title = R.string.onboarding_notification_title,
+                    description = R.string.onboarding_notification_description,
+                    grantPermissionButtonText = R.string.grant_permission,
+                    onGrantPermissionClicked = {},
+                    permissionState = PermissionState.IDLE,
+                    imageDrawable = R.drawable.onboarding_app_showcase_cropped,
+                    modifier = Modifier.weight(1f),
+                )
+                OnboardingBottomBar(onNextClicked = {}, nextButtonText = R.string.next, onBackClicked = {})
+            }
+        }
+    }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
-@Preview(showBackground = true, showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(showBackground = true, showSystemUi = true, device = "spec:orientation=landscape,width=411dp,height=891dp")
 @Composable
-fun NotificationPermissionsScreenGrantedPreview() {
-    NotificationPermissionScreenPreview(
-        permissionState = PermissionState.GRANTED,
-    )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Preview(showBackground = true, showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(showBackground = true, showSystemUi = true, device = "spec:orientation=landscape,width=411dp,height=891dp")
-@Composable
-fun NotificationPermissionsScreenDeniedPreview() {
-    NotificationPermissionScreenPreview(
-        permissionState = PermissionState.DENIED,
-    )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Preview(showBackground = true, showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(showBackground = true, showSystemUi = true, device = "spec:orientation=landscape,width=411dp,height=891dp")
-@Composable
-fun NotificationPermissionsScreenDeniedForeverPreview() {
-    NotificationPermissionScreenPreview(
-        permissionState = PermissionState.DENIED_FOREVER,
-    )
+fun AudioPermissionsScreenIdlePreview() {
+    SoloShelfTheme {
+        Surface {
+            Column(modifier = Modifier.fillMaxSize()) {
+                PermissionScreenContent(
+                    title = R.string.onboarding_audio_permission_title,
+                    description = R.string.onboarding_audio_permission_description,
+                    grantPermissionButtonText = R.string.grant_audio_permission,
+                    onGrantPermissionClicked = {},
+                    permissionState = PermissionState.IDLE,
+                    imageDrawable = R.drawable.onboarding_app_showcase_cropped,
+                    modifier = Modifier.weight(1f),
+                )
+                OnboardingBottomBar(onNextClicked = {}, nextButtonText = R.string.finish, onBackClicked = {})
+            }
+        }
+    }
 }

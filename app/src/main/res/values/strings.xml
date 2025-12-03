@@ -7,6 +7,8 @@ SoloShelf</string>
     <string name="app_icon">App Icon</string>
     <string name="back">Back</string>
     <string name="skip">Skip</string>
+    <string name="next">Next</string>
+    <string name="finish">Finish</string>
     <string name="grant_permission">Enable Notifications</string>
     <string name="grant_permission_success">Permission granted</string>
     <string name="grant_permission_denied">Permission denied</string>
@@ -15,5 +17,10 @@ SoloShelf</string>
     <string name="onboarding_notification_description">
         Enable notifications to conveniently manage audiobook playback with controls on your lock screen, allowing you to see what\'s playing and make adjustments without having to reopen the app.
     </string>
+    <string name="onboarding_audio_permission_title">Listen to Audiobooks</string>
+    <string name="onboarding_audio_permission_description">
+        Grant permission to enable audiobook playback. This allows the app to play, pause, and manage your audiobooks seamlessly.
+    </string>
+    <string name="grant_audio_permission">Grant Audio Permission</string>
 
 </resources>

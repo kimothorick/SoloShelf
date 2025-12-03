@@ -12,14 +12,14 @@ import kotlinx.coroutines.flow.map
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = Constants.DATASTORE_NAME)
 
-class UserPreferencesRepository(private val context: Context) {
-
+class UserPreferencesRepository(
+    private val context: Context,
+) {
     private val IS_FIRST_LAUNCH = booleanPreferencesKey("is_first_launch")
 
-    val isFirstLaunch: Flow<Boolean> = context.dataStore.data
-        .map {
-            it[IS_FIRST_LAUNCH] ?: true
-        }
+    val isFirstLaunch: Flow<Boolean> = context.dataStore.data.map {
+        it[IS_FIRST_LAUNCH] ?: true
+    }
 
     suspend fun updateFirstLaunch() {
         context.dataStore.edit {
