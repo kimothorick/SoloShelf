@@ -65,8 +65,9 @@ fun OnboardingScreen(
     notificationPermissionState: PermissionState,
     onGrantAudioPermissionClicked: () -> Unit,
     audioPermissionState: PermissionState,
+    initialPage: Int = 0,
 ) {
-    val pagerState = rememberPagerState(pageCount = { 3 })
+    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { 3 })
     val scope = rememberCoroutineScope()
 
     Column(
@@ -289,7 +290,7 @@ private fun PermissionScreenContent(
                                 colors = listOf(
                                     Color.Transparent,
                                     Color.Transparent,
-                                    MaterialTheme.colorScheme.surface,
+                                    MaterialTheme.colorScheme.background,
                                 ),
                             ),
                         ),
