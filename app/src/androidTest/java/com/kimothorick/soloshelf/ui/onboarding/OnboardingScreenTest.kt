@@ -15,7 +15,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class OnboardingScreenTest {
-
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -58,7 +57,7 @@ class OnboardingScreenTest {
         composeTestRule.setContent {
             SoloShelfTheme {
                 OnboardingScreen(
-                    onOnboardingFinished = {}, 
+                    onOnboardingFinished = {},
                     onGrantNotificationPermissionClicked = {},
                     notificationPermissionState = PermissionState.GRANTED,
                     onGrantAudioPermissionClicked = {},
@@ -104,7 +103,8 @@ class OnboardingScreenTest {
         }
 
         composeTestRule.onNodeWithText(context.getString(R.string.get_started)).performClick()
-        composeTestRule.onNodeWithText(context.getString(R.string.grant_permission_denied_forever))
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.grant_permission_denied_forever))
             .assertIsDisplayed()
     }
 
@@ -162,7 +162,8 @@ class OnboardingScreenTest {
 
         composeTestRule.onNodeWithText(context.getString(R.string.get_started)).performClick()
         composeTestRule.onNodeWithText(context.getString(R.string.next)).performClick()
-        composeTestRule.onNodeWithText(context.getString(R.string.grant_permission_denied_forever))
+        composeTestRule
+            .onNodeWithText(context.getString(R.string.grant_permission_denied_forever))
             .assertIsDisplayed()
     }
 

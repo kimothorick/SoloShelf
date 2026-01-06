@@ -7,11 +7,10 @@ import org.junit.Rule
 import org.junit.Test
 
 class OnboardingScreenSnapshotTest {
-
     @get:Rule
     val paparazzi = Paparazzi(
         deviceConfig = DeviceConfig.PIXEL_5,
-        theme = "android:Theme.Material.Light.NoActionBar"
+        theme = "android:Theme.Material.Light.NoActionBar",
     )
 
     @Test
