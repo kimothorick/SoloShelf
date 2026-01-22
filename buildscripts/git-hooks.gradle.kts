@@ -6,25 +6,24 @@ fun isLinuxOrMacOs(): Boolean {
 tasks.register<Copy>("copyGitHooks") {
     description = "Copies the git hooks from /scripts/git-hooks to the .git folder."
     group = "git hooks"
-    from("${"$"}{rootDir}/scripts/git-hooks/") {
+    from("${rootDir}/scripts/git-hooks/") {
         include("**/*.sh")
         rename("(.+)\\.sh", "$1")
     }
-    into("${"$"}{rootDir}/.git/hooks")
+    into("${rootDir}/.git/hooks")
     onlyIf { isLinuxOrMacOs() }
 }
 
-tasks.register("installGitHooks") {
+tasks.register<Exec>("installGitHooks") {
     description = "Installs the git hooks from /scripts/git-hooks."
     group = "git hooks"
-    dependsOn(tasks.getByName("copyGitHooks"))
+    dependsOn(tasks.named("copyGitHooks"))
     onlyIf { isLinuxOrMacOs() }
 
+    workingDir = rootDir
+    commandLine = listOf("chmod", "-R", "+x", ".git/hooks/")
+
     doLast {
-        exec {
-            workingDir = rootDir
-            commandLine("chmod", "-R", "+x", ".git/hooks/")
-        }
         println("✅ Git hooks installed successfully.")
     }
 }
@@ -42,7 +41,7 @@ tasks.register("uninstallGitHooks") {
                 val destFile = hooksDir.resolve(sourceFile.nameWithoutExtension)
                 if (destFile.exists()) {
                     destFile.delete()
-                    println("🗑️ Deleted hook: ${"$"}{destFile.name}")
+                    println("🗑️ Deleted hook: ${destFile.name}")
                 }
             }
             println("✅ Git hooks uninstalled.")

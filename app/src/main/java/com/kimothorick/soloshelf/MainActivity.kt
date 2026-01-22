@@ -12,19 +12,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kimothorick.soloshelf.navigation.NavigationRoot
 import com.kimothorick.soloshelf.ui.onboarding.OnboardingScreen
 import com.kimothorick.soloshelf.ui.onboarding.OnboardingViewModel
 import com.kimothorick.soloshelf.ui.onboarding.PermissionState
@@ -42,35 +37,32 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val notificationPermissionLauncher =
-                rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.RequestPermission(),
-                ) { isGranted ->
-                    viewModel.handleNotificationPermissionResult(isGranted) {
-                        ActivityCompat.shouldShowRequestPermissionRationale(
-                            this,
-                            Manifest.permission.POST_NOTIFICATIONS,
-                        )
-                    }
+            val notificationPermissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission(),
+            ) { isGranted ->
+                viewModel.handleNotificationPermissionResult(isGranted) {
+                    ActivityCompat.shouldShowRequestPermissionRationale(
+                        this,
+                        Manifest.permission.POST_NOTIFICATIONS,
+                    )
                 }
+            }
 
-            val audioPermissionLauncher =
-                rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.RequestPermission(),
-                ) { isGranted ->
-                    val audioPermission =
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            Manifest.permission.READ_MEDIA_AUDIO
-                        } else {
-                            Manifest.permission.READ_EXTERNAL_STORAGE
-                        }
-                    viewModel.handleAudioPermissionResult(isGranted) {
-                        ActivityCompat.shouldShowRequestPermissionRationale(
-                            this,
-                            audioPermission,
-                        )
-                    }
+            val audioPermissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission(),
+            ) { isGranted ->
+                val audioPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    Manifest.permission.READ_MEDIA_AUDIO
+                } else {
+                    Manifest.permission.READ_EXTERNAL_STORAGE
                 }
+                viewModel.handleAudioPermissionResult(isGranted) {
+                    ActivityCompat.shouldShowRequestPermissionRationale(
+                        this,
+                        audioPermission,
+                    )
+                }
+            }
 
             val lifecycleOwner = LocalLifecycleOwner.current
             DisposableEffect(lifecycleOwner, viewModel) {
@@ -106,12 +98,11 @@ class MainActivity : ComponentActivity() {
                         },
                         notificationPermissionState = notificationPermissionState,
                         onGrantAudioPermissionClicked = {
-                            val permission =
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                    Manifest.permission.READ_MEDIA_AUDIO
-                                } else {
-                                    Manifest.permission.READ_EXTERNAL_STORAGE
-                                }
+                            val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                Manifest.permission.READ_MEDIA_AUDIO
+                            } else {
+                                Manifest.permission.READ_EXTERNAL_STORAGE
+                            }
                             handlePermissionClick(
                                 state = audioPermissionState,
                                 permission = permission,
@@ -121,11 +112,7 @@ class MainActivity : ComponentActivity() {
                         audioPermissionState = audioPermissionState,
                     )
                 } else {
-                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                        Column(modifier = Modifier.padding(innerPadding)) {
-                            Text("This is the home screen")
-                        }
-                    }
+                    NavigationRoot()
                 }
             }
         }
