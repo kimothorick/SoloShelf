@@ -67,10 +67,9 @@ fun SearchBar(
                     onSearchTriggered(it)
                     keyboardController?.hide()
                     focusManager.clearFocus()
-                    isExpanded = false
                 },
                 expanded = isExpanded,
-                onExpandedChange = { isExpanded = false },
+                onExpandedChange = { },
                 placeholder = {
                     Text(
                         stringResource(R.string.search),
@@ -131,7 +130,10 @@ fun SearchBar(
                         )
                     },
                     text = { Text(stringResource(R.string.settings_title)) },
-                    onClick = { onNavigateToSettings() },
+                    onClick = {
+                        onNavigateToSettings()
+                        isExpanded = false
+                    },
                 )
             }
         },
