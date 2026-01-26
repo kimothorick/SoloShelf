@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.serialization)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.paparazzi)
+    alias(libs.plugins.screenshot)
 }
 
 android {
@@ -49,6 +49,14 @@ android {
             kotlin.directories.add("additionalSourceDirectory/kotlin")
         }
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
+    experimentalProperties["android.experimental.enableScreenshotTest"] = true
 }
 
 kotlin {
@@ -84,7 +92,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     testImplementation(libs.junit)
-    testImplementation(libs.paparazzi)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -119,4 +126,8 @@ dependencies {
 
     // Material icons
     implementation(libs.androidx.compose.material.icons.extended)
+
+    // Screenshot Testing
+    screenshotTestImplementation(libs.screenshot.validation.api)
+    screenshotTestImplementation(libs.androidx.compose.ui.tooling)
 }
