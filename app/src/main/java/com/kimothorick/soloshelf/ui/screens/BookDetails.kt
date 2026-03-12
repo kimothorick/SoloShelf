@@ -21,7 +21,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -60,8 +59,11 @@ import com.kimothorick.soloshelf.R
 import com.kimothorick.soloshelf.data.models.Book
 import com.kimothorick.soloshelf.ui.components.CircularIconButton
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.YearMonth
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -112,7 +114,10 @@ private fun BookDetailsContent(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Book Cover
@@ -157,11 +162,9 @@ private fun BookDetailsContent(
         ) {
             SplitButtonDefaults.LeadingButton(
                 onClick = { /* Start reading */ },
-                modifier = Modifier.height(56.dp).weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF5D5D5B),
-                    contentColor = Color.White,
-                ),
+                modifier = Modifier
+                    .height(56.dp)
+                    .weight(1f),
             ) {
                 Text(
                     text = stringResource(R.string.start_reading),
@@ -177,10 +180,6 @@ private fun BookDetailsContent(
             SplitButtonDefaults.TrailingButton(
                 onClick = { /* More options */ },
                 modifier = Modifier.height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF5D5D5B),
-                    contentColor = Color.White,
-                ),
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
@@ -318,8 +317,7 @@ private fun formatLanguage(
 ): String? {
     if (languageCode.isNullOrBlank()) return null
     return try {
-        Locale(languageCode)
-            .getDisplayLanguage(Locale.getDefault())
+        Locale.forLanguageTag(languageCode).getDisplayLanguage(Locale.getDefault())
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     } catch (e: Exception) {
         languageCode
@@ -330,30 +328,62 @@ private fun formatDate(
     dateString: String?,
 ): String? {
     if (dateString.isNullOrBlank() || dateString.contains("unknown", ignoreCase = true)) return null
-
-    val inputFormatters = listOf(
-        DateTimeFormatter.ISO_LOCAL_DATE, // yyyy-MM-dd
-        DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.ENGLISH),
-        DateTimeFormatter.ofPattern("yyyy/MM/dd", Locale.ENGLISH),
-        DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH),
-        DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH),
-        DateTimeFormatter.ofPattern("yyyy", Locale.ENGLISH),
-    )
+    val trimmed = dateString.trim()
 
     val outputFormatter = DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.getDefault())
 
-    for (formatter in inputFormatters) {
+    // 1. Try common ISO-8601 and variations using a broad approach
+    val parseAttempts = listOf<() -> LocalDate?>(
+        { OffsetDateTime.parse(trimmed).toLocalDate() },
+        { ZonedDateTime.parse(trimmed).toLocalDate() },
+        { LocalDateTime.parse(trimmed).toLocalDate() },
+        { LocalDate.parse(trimmed) },
+        { if (trimmed.length >= 10) LocalDate.parse(trimmed.substring(0, 10)) else null }
+    )
+
+    for (attempt in parseAttempts) {
         try {
-            if (formatter == inputFormatters.last()) {
-                // Special case for just the year
-                val year = dateString.toIntOrNull() ?: continue
-                return outputFormatter.format(LocalDate.of(year, 1, 1)).replace("January 1, ", "")
-            }
-            val date = LocalDate.parse(dateString, formatter)
-            return date.format(outputFormatter)
-        } catch (e: DateTimeParseException) {
+            val date = attempt()
+            if (date != null) return date.format(outputFormatter)
+        } catch (e: Exception) {
             continue
         }
+    }
+
+    // 2. Try specific patterns
+    val patterns = listOf(
+        "yyyy-MM-dd", "yyyy/MM/dd", "MMMM d, yyyy", "MMM d, yyyy",
+        "EEE MMM dd HH:mm:ss z yyyy", "MMM dd, yyyy", "dd MMM yyyy"
+    )
+
+    for (pattern in patterns) {
+        try {
+            val formatter = DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH)
+            val date = try {
+                LocalDate.parse(trimmed, formatter)
+            } catch (e: Exception) {
+                ZonedDateTime.parse(trimmed, formatter).toLocalDate()
+            }
+            return date.format(outputFormatter)
+        } catch (e: Exception) {
+            continue
+        }
+    }
+
+    // 3. Try Year-Month
+    try {
+        val ymPattern = if (trimmed.contains("-")) "yyyy-MM" else if (trimmed.contains("/")) "yyyy/MM" else null
+        if (ymPattern != null) {
+            val ym = YearMonth.parse(trimmed, DateTimeFormatter.ofPattern(ymPattern, Locale.ENGLISH))
+            return DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()).format(ym)
+        }
+    } catch (e: Exception) { }
+
+    // 4. Extract year as a last resort
+    val yearRegex = Regex("""\b(\d{4})\b""")
+    val match = yearRegex.find(trimmed)
+    if (match != null) {
+        return match.groupValues[1]
     }
 
     return dateString

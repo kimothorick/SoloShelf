@@ -35,3 +35,4 @@ google-services.json
 
 # MACOS DS_STORE FILES
 **/.DS_Store
+/gradle/gradle-daemon-jvm.properties
