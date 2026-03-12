@@ -9,5 +9,5 @@ data class BookAndProgress(
         parentColumn = "bookId",
         entityColumn = "bookId",
     )
-    val progress: ReadingProgress,
+    val progress: ReadingProgress?,
 )

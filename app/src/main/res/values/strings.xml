@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">SoloShelf</string>
-    <string name="welcome_to_soloshelf">Welcome to 
-SoloShelf</string>
+    <string name="welcome_to_soloshelf">Welcome to SoloShelf</string>
     <string name="soloshelf_description">This is your private, offline-first home for every ebook and audiobook you own, built for simplicity and complete ownership.</string>
     <string name="get_started">Get Started</string>
     <string name="app_icon">App Icon</string>
@@ -11,7 +10,7 @@ SoloShelf</string>
     <string name="finish">Finish</string>
     <string name="grant_permission">Enable Notifications</string>
     <string name="grant_permission_success">Permission granted</string>
-    <string name="grant_permission_denied">Permission denied</string>
+    <string name="grant_permission_denied">Permission granted</string>
     <string name="grant_permission_denied_forever">Grant Permission in settings</string>
     <string name="onboarding_notification_title">Notifications</string>
     <string name="onboarding_notification_description">
@@ -26,13 +25,73 @@ SoloShelf</string>
     <string name="settings_title">Settings</string>
     <string name="settings_screen_placeholder">Settings screen</string>
     <string name="search">Search</string>
-    <string name="more_options">More options</string>
+    <string name="max_options">More options</string>
+    <string name="sort_by">Sort by</string>
+    <string name="sort_order_title">Title</string>
+    <string name="sort_order_author">Author</string>
+    <string name="sort_order_date_added">Date added</string>
+    <string name="sort_order_last_read">Last Read</string>
 
     <string name="library">Library</string>
     <string name="bookshelf">Bookshelf</string>
     <string name="audiobooks">Audiobooks</string>
+    <string name="collections">Collections</string>
 
     <string name="library_screen_placeholder">Library screen</string>
     <string name="bookshelf_screen_placeholder">Bookshelf screen</string>
     <string name="audiobooks_screen_placeholder">Audiobooks screen</string>
+
+    <!-- Settings Screen -->
+    <string name="appearance">Appearance</string>
+    <string name="theme">Theme</string>
+    <string name="theme_auto">Auto</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="dynamic_color">Dynamic Color</string>
+    <string name="dynamic_color_desc">Enable dynamic colors</string>
+
+    <string name="language">Language</string>
+    <string name="preferred_language">Preferred language</string>
+    <string name="upcoming_feature">Upcoming feature</string>
+
+    <string name="support_feedback">Support &amp; Feedback</string>
+    <string name="feedback">Feedback</string>
+    <string name="feedback_desc">Even the best apps have bugs. Report yours here!</string>
+    <string name="rate_app">Rate app</string>
+    <string name="rate_app_desc">Give us a rating on the Play Store</string>
+
+    <string name="about_soloshelf">About SoloShelf</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="app_version">App Version</string>
+    <string name="developer_credits">Developer Credits</string>
+    <string name="developer_credits_desc">See the faces behind the app.</string>
+    <string name="filter">Filter</string>
+    <string name="settings">Settings</string>
+
+    <string name="book_already_in_library">This book is already in your library</string>
+    <plurals name="books_added_to_library">
+        <item quantity="one">Book added to library</item>
+        <item quantity="other">Books added to library</item>
+    </plurals>
+    <string name="unknown">Unknown</string>
+    <string name="unknown_book">Unknown Book</string>
+    <string name="unknown_author">Unknown Author</string>
+    <string name="error_adding_book">Error adding book to library</string>
+    <string name="unsupported_format">Unsupported file format</string>
+
+    <string name="ascending">Ascending</string>
+    <string name="descending">Descending</string>
+    <string name="order">Order</string>
+    <string name="apply">Apply</string>
+    <string name="done_action">Done</string>
+    <string name="collection_items_authors">%1$d items • %2$d authors</string>
+    <string name="start_reading">Start reading</string>
+    <string name="more">More</string>
+    <string name="synopsis">Synopsis</string>
+    <string name="no_synopsis_available">No synopsis available.</string>
+    <string name="details">Details</string>
+    <string name="pages">Pages</string>
+    <string name="publication_date">Publication date</string>
+    <string name="file_type">File type</string>
+    <string name="genres">Genres</string>
 </resources>

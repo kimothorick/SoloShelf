@@ -7,28 +7,36 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kimothorick.soloshelf.data.preferences.AppTheme
 import com.kimothorick.soloshelf.navigation.NavigationRoot
+import com.kimothorick.soloshelf.ui.main.MainViewModel
 import com.kimothorick.soloshelf.ui.onboarding.OnboardingScreen
 import com.kimothorick.soloshelf.ui.onboarding.OnboardingViewModel
 import com.kimothorick.soloshelf.ui.onboarding.PermissionState
+import com.kimothorick.soloshelf.ui.screens.settings.SettingsViewModel
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val viewModel: OnboardingViewModel by viewModels()
+    private val mainViewModel: MainViewModel by viewModels()
+    private val onboardingViewModel: OnboardingViewModel by viewModels()
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(
         savedInstanceState: Bundle?,
@@ -37,10 +45,32 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
+            val themePreference by settingsViewModel.themePreference.collectAsStateWithLifecycle()
+            val dynamicColorPreference by settingsViewModel.dynamicColor.collectAsStateWithLifecycle()
+
+            val darkTheme = when (themePreference) {
+                AppTheme.LIGHT -> false
+                AppTheme.DARK -> true
+                else -> isSystemInDarkTheme()
+            }
+
+            LaunchedEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = SystemBarStyle.auto(
+                        android.graphics.Color.TRANSPARENT,
+                        android.graphics.Color.TRANSPARENT,
+                    ) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.auto(
+                        android.graphics.Color.TRANSPARENT,
+                        android.graphics.Color.TRANSPARENT,
+                    ) { darkTheme },
+                )
+            }
+
             val notificationPermissionLauncher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestPermission(),
             ) { isGranted ->
-                viewModel.handleNotificationPermissionResult(isGranted) {
+                onboardingViewModel.handleNotificationPermissionResult(isGranted) {
                     ActivityCompat.shouldShowRequestPermissionRationale(
                         this,
                         Manifest.permission.POST_NOTIFICATIONS,
@@ -56,7 +86,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     Manifest.permission.READ_EXTERNAL_STORAGE
                 }
-                viewModel.handleAudioPermissionResult(isGranted) {
+                onboardingViewModel.handleAudioPermissionResult(isGranted) {
                     ActivityCompat.shouldShowRequestPermissionRationale(
                         this,
                         audioPermission,
@@ -65,11 +95,11 @@ class MainActivity : ComponentActivity() {
             }
 
             val lifecycleOwner = LocalLifecycleOwner.current
-            DisposableEffect(lifecycleOwner, viewModel) {
+            DisposableEffect(lifecycleOwner, onboardingViewModel) {
                 val observer = LifecycleEventObserver { _, event ->
                     if (event == Lifecycle.Event.ON_RESUME) {
-                        viewModel.checkNotificationPermissionStatus()
-                        viewModel.checkAudioPermissionStatus()
+                        onboardingViewModel.checkNotificationPermissionStatus()
+                        onboardingViewModel.checkAudioPermissionStatus()
                     }
                 }
                 lifecycleOwner.lifecycle.addObserver(observer)
@@ -78,14 +108,17 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            SoloShelfTheme(dynamicColor = false) {
-                val isFirstLaunch by viewModel.isFirstLaunch.collectAsStateWithLifecycle()
-                val notificationPermissionState by viewModel.notificationPermissionState.collectAsStateWithLifecycle()
-                val audioPermissionState by viewModel.audioPermissionState.collectAsStateWithLifecycle()
+            SoloShelfTheme(
+                darkTheme = darkTheme,
+                dynamicColor = dynamicColorPreference,
+            ) {
+                val isFirstLaunch by onboardingViewModel.isFirstLaunch.collectAsStateWithLifecycle()
+                val notificationPermissionState by onboardingViewModel.notificationPermissionState.collectAsStateWithLifecycle()
+                val audioPermissionState by onboardingViewModel.audioPermissionState.collectAsStateWithLifecycle()
 
                 if (isFirstLaunch) {
                     OnboardingScreen(
-                        onOnboardingFinished = viewModel::onOnboardingFinished,
+                        onOnboardingFinished = onboardingViewModel::onOnboardingFinished,
                         onGrantNotificationPermissionClicked = {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                 handlePermissionClick(
@@ -112,7 +145,10 @@ class MainActivity : ComponentActivity() {
                         audioPermissionState = audioPermissionState,
                     )
                 } else {
-                    NavigationRoot()
+                    NavigationRoot(
+                        mainViewModel = mainViewModel,
+                        settingsViewModel = settingsViewModel,
+                    )
                 }
             }
         }
