@@ -31,6 +31,7 @@ screenshot = "0.0.1-alpha13"
 material3WindowSizeClass = "1.4.0"
 readium = "3.1.2"
 pdfium = "1.9.8"
+materialkolor = "4.1.1"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
@@ -86,6 +87,8 @@ readium-shared = { group = "org.readium.kotlin-toolkit", name = "readium-shared"
 readium-streamer = { group = "org.readium.kotlin-toolkit", name = "readium-streamer", version.ref = "readium" }
 readium-adapter-pdfium = { group = "org.readium.kotlin-toolkit", name = "readium-adapter-pdfium", version.ref = "readium" }
 pdfium = { group = "com.github.marain87", name = "PdfiumAndroid", version.ref = "pdfium" }
+
+materialkolor = { module = "com.materialkolor:material-kolor", version.ref = "materialkolor" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

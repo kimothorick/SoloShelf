@@ -1,41 +1,37 @@
 package com.kimothorick.soloshelf.ui.screens.settings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,6 +39,8 @@ import com.kimothorick.soloshelf.BuildConfig
 import com.kimothorick.soloshelf.R
 import com.kimothorick.soloshelf.data.preferences.AppTheme
 import com.kimothorick.soloshelf.ui.components.CircularIconButton
+import com.kimothorick.soloshelf.ui.components.ToggleableButtonGroup
+import com.kimothorick.soloshelf.ui.components.ToggleableButtonItem
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
 import com.kimothorick.soloshelf.ui.tooling.DevicePreviews
 
@@ -73,17 +71,20 @@ fun SettingsContent(
     onThemeChange: (AppTheme) -> Unit,
     onDynamicColorChange: (Boolean) -> Unit,
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            LargeFlexibleTopAppBar(
                 title = {
                     Text(
                         stringResource(R.string.settings_title),
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 8.dp),
                     )
                 },
-                titleHorizontalAlignment = Alignment.CenterHorizontally,
-                subtitle = { null },
                 navigationIcon = {
                     CircularIconButton(
                         modifier = Modifier.padding(start = 12.dp),
@@ -92,10 +93,15 @@ fun SettingsContent(
                         onClick = { onBack() },
                     )
                 },
+                actions = {
+                    // Empty spacer to balance the navigation icon and keep title centered
+                    Spacer(modifier = Modifier.width(52.dp))
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = MaterialTheme.colorScheme.background,
                 ),
+                scrollBehavior = scrollBehavior,
             )
         },
     ) { innerPadding ->
@@ -175,7 +181,6 @@ fun SettingsContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ThemeOptionsSettingsItem(
     modifier: Modifier = Modifier,
@@ -188,7 +193,6 @@ fun ThemeOptionsSettingsItem(
         stringResource(R.string.theme_light),
         stringResource(R.string.theme_dark),
     )
-    val selectedIndex = themeOptions.indexOf(selectedTheme)
 
     Column(
         modifier = modifier
@@ -203,38 +207,20 @@ fun ThemeOptionsSettingsItem(
             color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = MaterialTheme.shapes.medium,
-                ).height(56.dp)
-                .padding(all = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            themeOptions.forEachIndexed { index, theme ->
-                ToggleButton(
-                    checked = selectedIndex == index,
-                    onCheckedChange = {
-                        setTheme(theme)
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .semantics { role = Role.RadioButton },
-                    shapes = ToggleButtonDefaults.shapes(MaterialTheme.shapes.medium),
-                    border = null,
-                    colors = ToggleButtonDefaults.toggleButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    ),
-                ) {
-                    Text(themeOptionsLabels[index])
-                }
-            }
+
+        val items = themeOptions.mapIndexed { index, theme ->
+            ToggleableButtonItem(
+                label = themeOptionsLabels[index],
+                isSelected = theme == selectedTheme,
+                identifier = theme,
+            )
         }
+
+        ToggleableButtonGroup(
+            items = items,
+            onItemSelected = { setTheme(it.identifier as AppTheme) },
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -247,9 +233,9 @@ fun SettingsSection(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
         )
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()

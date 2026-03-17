@@ -145,5 +145,8 @@ dependencies {
     implementation(libs.readium.streamer)
     implementation(libs.readium.adapter.pdfium)
 
+    // MaterialKolor
+    implementation(libs.materialkolor)
+
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
