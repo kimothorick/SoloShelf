@@ -10,16 +10,17 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.screenshot)
     alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.stability.analyzer)
 }
 
 android {
     namespace = "com.kimothorick.soloshelf"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.kimothorick.soloshelf"
-        minSdk = 27
-        targetSdk = 36
+        minSdk = 28
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0.0"
 
@@ -28,7 +29,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -68,13 +70,13 @@ kotlin {
         freeCompilerArgs.addAll(
             "-Xopt-in=kotlin.time.ExperimentalTime",
             "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-            "-Xcontext-receivers",
+            "-opt-in=androidx.compose.foundation.style.ExperimentalFoundationStyleApi",
+            "-Xcontext-parameters",
         )
 
-        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0
+        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4
     }
 }
-
 ktlint {
     android = true
     ignoreFailures = false
@@ -86,6 +88,7 @@ ktlint {
 }
 
 dependencies {
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -109,6 +112,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.kotlinx.serialization.core)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.coil.compose)
     implementation(libs.androidx.datastore.preferences)
@@ -126,9 +130,19 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    ksp(libs.kotlin.metadata.jvm)
     androidTestImplementation(libs.hilt.android.testing)
     kspAndroidTest(libs.hilt.compiler)
+    kspAndroidTest(libs.kotlin.metadata.jvm)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+
+    // Splashscreen
+    implementation(libs.androidx.core.splashscreen)
+
+    // Fragment
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.fragment.compose)
 
     // Material icons
     implementation(libs.androidx.compose.material.icons.extended)
@@ -143,10 +157,27 @@ dependencies {
     // Readium
     implementation(libs.readium.shared)
     implementation(libs.readium.streamer)
+    implementation(libs.readium.navigator)
+    implementation(libs.readium.adapter.pdfium.navigator)
     implementation(libs.readium.adapter.pdfium)
 
     // MaterialKolor
     implementation(libs.materialkolor)
 
     coreLibraryDesugaring(libs.desugar.jdk.libs)
+
+    implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.runtime)
+
+    implementation(libs.kotlinx.collections.immutable)
+
+    implementation(libs.androidx.documentfile)
+
+    // Media3
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.media3.extractor)
+    implementation(libs.jebml)
 }

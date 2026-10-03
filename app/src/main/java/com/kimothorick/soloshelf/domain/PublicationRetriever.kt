@@ -1,9 +1,16 @@
+/*
+ * Copyright 2023 Readium Foundation. All rights reserved.
+ * Use of this source code is governed by the BSD-style license
+ * available in the top-level LICENSE file of the project.
+ */
+
 package com.kimothorick.soloshelf.domain
 
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.readium.r2.shared.publication.Publication
+import org.readium.r2.shared.util.Error
 import org.readium.r2.shared.util.Try
 import org.readium.r2.shared.util.asset.Asset
 import org.readium.r2.streamer.PublicationOpener
@@ -19,16 +26,14 @@ class PublicationRetriever(
 ) {
     private val cachedPublications = ConcurrentHashMap<String, Publication>()
 
-    suspend fun retrieve(asset: Asset): Try<Publication, Exception> = withContext(Dispatchers.IO) {
+    suspend fun retrieve(asset: Asset): Try<Publication, Error> = withContext(Dispatchers.IO) {
         val cacheKey = asset.toString()
         cachedPublications[cacheKey]?.let { return@withContext Try.success(it) }
 
         publicationOpener.open(asset, allowUserInteraction = false)
-            .map { publication ->
+            .onSuccess { publication ->
                 cachedPublications[cacheKey] = publication
-                publication
             }
-            .mapFailure { Exception(it.toString()) }
     }
 
     fun close(asset: Asset) {

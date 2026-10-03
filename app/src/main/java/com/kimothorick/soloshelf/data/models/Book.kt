@@ -5,10 +5,11 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.kimothorick.soloshelf.data.Converters
+import org.readium.r2.shared.util.mediatype.MediaType
 
 @Entity(
     tableName = "books",
-    indices = [Index(value = ["filePath"], unique = true)]
+    indices = [Index(value = ["filePath"], unique = true)],
 )
 @TypeConverters(Converters::class)
 data class Book(
@@ -18,7 +19,7 @@ data class Book(
     val title: String,
     val author: String,
     val format: String,
-    val totalPages: Int = 0,
+    val mediaType: MediaType? = null,
     val coverPath: String? = null,
     val dateAdded: Long = System.currentTimeMillis(),
     val synopsis: String? = null,
@@ -27,4 +28,7 @@ data class Book(
     val genres: List<String> = emptyList(),
     val seriesName: String? = null,
     val seriesPosition: Float? = null,
+    val publisher: String? = null,
+    val isbn: String? = null,
+    val isAudiobook: Boolean = false,
 )

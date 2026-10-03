@@ -13,6 +13,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://androidx.dev/snapshots/builds/current/artifacts/repository") }
         // Official Readium repository for 3.x
         maven { url = uri("https://dl.cloudsmith.io/public/readium/readium-kotlin-toolkit/maven/") }
         // Required for transitive dependencies like AndroidPdfViewer

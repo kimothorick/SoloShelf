@@ -1,23 +1,24 @@
 package com.kimothorick.soloshelf.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
@@ -36,59 +37,80 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.kimothorick.soloshelf.R
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
+import com.kimothorick.soloshelf.ui.tooling.ComponentPreviews
 import com.kimothorick.soloshelf.ui.tooling.ThemePreviews
+import com.skydoves.compose.stability.runtime.TraceRecomposition
 
 @Composable
 fun CircularIconButton(
-    icon: ImageVector,
+    icon: Int,
     label: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     backgroundColor: Color? = null,
-    borderColor: Color? = null,
+    borderColor: Boolean = false,
     contentColor: Color? = null,
     onClick: () -> Unit,
 ) {
-    IconButton(
+    OutlinedIconButton(
         onClick = onClick,
         modifier = modifier.requiredSize(40.dp),
         enabled = enabled,
-        shape = CircleShape,
         colors = IconButtonDefaults.outlinedIconButtonColors(
-            containerColor = backgroundColor ?: MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = contentColor ?: MaterialTheme.colorScheme.onSurface,
+            containerColor = backgroundColor ?: SoloShelfTheme.colorScheme.surfaceVariant,
+            contentColor = contentColor ?: SoloShelfTheme.colorScheme.onSurface,
         ),
+        border = if (borderColor) {
+            BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+            )
+        } else {
+            null
+        },
     ) {
         Icon(
             modifier = Modifier.requiredSize(20.dp),
-            imageVector = icon,
+            painter = painterResource(icon),
             contentDescription = label,
         )
     }
 }
 
-@ThemePreviews
+@ComponentPreviews
 @Composable
-private fun CircularIconButtonPreview() {
+private fun CircularIconButtonPreview(
+    borderColor: Boolean = false,
+) {
     SoloShelfTheme {
         Surface {
             Row(modifier = Modifier.padding(16.dp)) {
                 CircularIconButton(
-                    icon = Icons.Rounded.Settings,
+                    icon = R.drawable.ic_palette,
                     label = "Settings",
                     onClick = {},
+                    borderColor = borderColor,
                 )
             }
         }
     }
 }
 
+@ThemePreviews
+@Composable
+private fun CircularIconButtonWithBorderPreview() {
+    CircularIconButtonPreview(borderColor = true)
+}
+
+@TraceRecomposition
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ToggleableButtonGroup(
@@ -101,9 +123,9 @@ fun ToggleableButtonGroup(
         targetValue = selectedIndex.toFloat(),
         label = "selected_index_animation",
     )
-    val backgroundColor = MaterialTheme.colorScheme.inverseSurface
-    val outlineColor = MaterialTheme.colorScheme.outline
-    val containerShape = MaterialTheme.shapes.medium
+    val backgroundColor = SoloShelfTheme.colorScheme.inverseSurface
+    val outlineColor = SoloShelfTheme.colorScheme.outline
+    val containerShape = MaterialTheme.shapes.extraLarge
 
     Row(
         modifier
@@ -111,7 +133,7 @@ fun ToggleableButtonGroup(
                 width = 1.dp,
                 color = outlineColor,
                 shape = containerShape,
-            ).height(56.dp)
+            ).height(52.dp)
             .padding(all = 4.dp)
             .drawBehind {
                 val itemCount = items.size
@@ -126,7 +148,7 @@ fun ToggleableButtonGroup(
                         y = 0f,
                     ),
                     size = Size(itemWidth, size.height),
-                    cornerRadius = CornerRadius(12.dp.toPx()),
+                    cornerRadius = CornerRadius(28.dp.toPx()),
                 )
             },
         verticalAlignment = Alignment.CenterVertically,
@@ -138,9 +160,7 @@ fun ToggleableButtonGroup(
 
             if (index > 0 && !isSelected && !isPreviousSelected) {
                 VerticalDivider(
-                    modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .height(24.dp),
+                    modifier = Modifier.padding(vertical = 12.dp).height(24.dp),
                     color = MaterialTheme.colorScheme.outlineVariant,
                 )
             }
@@ -148,10 +168,7 @@ fun ToggleableButtonGroup(
             ToggleButton(
                 checked = isSelected,
                 onCheckedChange = { onItemSelected(item) },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .semantics { role = Role.RadioButton },
+                modifier = Modifier.weight(1f).fillMaxHeight().semantics { role = Role.RadioButton },
                 shapes = ToggleButtonDefaults.shapes(
                     shape = containerShape,
                     pressedShape = containerShape,
@@ -161,16 +178,29 @@ fun ToggleableButtonGroup(
                 colors = ToggleButtonDefaults.toggleButtonColors(
                     containerColor = Color.Transparent,
                     checkedContainerColor = Color.Transparent,
-                    checkedContentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    checkedContentColor = MaterialTheme.colorScheme.onPrimary,
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
             ) {
-                Text(
-                    text = item.label,
-                    style = MaterialTheme.typography.labelLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    if (item.icon != null) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                    }
+                    Text(
+                        text = item.label,
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }
@@ -180,6 +210,7 @@ data class ToggleableButtonItem(
     val label: String,
     val isSelected: Boolean,
     val identifier: Any?,
+    val icon: ImageVector? = null,
 )
 
 @ThemePreviews

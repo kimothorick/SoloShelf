@@ -1,115 +1,299 @@
 package com.kimothorick.soloshelf.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Headphones
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import coil3.compose.AsyncImage
 import com.kimothorick.soloshelf.R
-import com.kimothorick.soloshelf.data.models.Book
-import com.kimothorick.soloshelf.data.models.BookAndProgress
-import com.kimothorick.soloshelf.data.models.ReadingProgress
+import com.kimothorick.soloshelf.data.models.CollectionWithBooks
+import com.kimothorick.soloshelf.domain.models.LibraryItem
+import com.kimothorick.soloshelf.ui.components.BookItem
+import com.kimothorick.soloshelf.ui.components.DeleteBookDialog
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
-import com.kimothorick.soloshelf.ui.tooling.ThemePreviews
+import com.kimothorick.soloshelf.ui.tooling.PreviewData
+import com.kimothorick.soloshelf.util.Constants
+import com.kimothorick.soloshelf.util.isAtLeastMedium
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun Library(
     onNavigateToBookDetails: (Long) -> Unit,
+    onNavigateToPlayer: (Long) -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
-    val recentBooks = viewModel.recentBooks.collectAsLazyPagingItems()
-    val allBooks = viewModel.allBooks.collectAsLazyPagingItems()
+    val ebooks = viewModel.ebooks.collectAsLazyPagingItems()
+    val audiobooks = viewModel.audiobooks.collectAsLazyPagingItems()
+    val recentEbooks = viewModel.recentEbooks.collectAsLazyPagingItems()
+    val recentAudiobooks = viewModel.recentAudiobooks.collectAsLazyPagingItems()
+    val collections by viewModel.collections.collectAsState()
+    val selectedTab by viewModel.selectedTab.collectAsState()
+
+    LibraryContent(
+        ebooks = ebooks,
+        audiobooks = audiobooks,
+        recentEbooks = recentEbooks.itemSnapshotList.items.toImmutableList(),
+        recentAudiobooks = recentAudiobooks.itemSnapshotList.items.toImmutableList(),
+        collections = collections.toImmutableList(),
+        selectedTab = selectedTab,
+        onNavigateToBookDetails = onNavigateToBookDetails,
+        onNavigateToPlayer = onNavigateToPlayer,
+        onSelectTab = viewModel::selectTab,
+        onDeleteBook = viewModel::deleteBook,
+        onAddBookToCollection = viewModel::addBookToCollection,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun LibraryContent(
+    ebooks: LazyPagingItems<LibraryItem.Ebook>,
+    audiobooks: LazyPagingItems<LibraryItem.Audiobook>,
+    recentEbooks: ImmutableList<LibraryItem.Ebook>,
+    recentAudiobooks: ImmutableList<LibraryItem.Audiobook>,
+    collections: ImmutableList<CollectionWithBooks>,
+    selectedTab: LibraryTab,
+    onNavigateToBookDetails: (Long) -> Unit,
+    onNavigateToPlayer: (Long) -> Unit,
+    onSelectTab: (LibraryTab) -> Unit,
+    onDeleteBook: (Long) -> Unit,
+    onAddBookToCollection: (Long, Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val pagerState = rememberPagerState(
+        initialPage = selectedTab.ordinal,
+        pageCount = { LibraryTab.entries.size },
+    )
+
+    // Sync selectedTab from ViewModel to pagerState
+    LaunchedEffect(selectedTab) {
+        if (pagerState.currentPage != selectedTab.ordinal) {
+            pagerState.animateScrollToPage(selectedTab.ordinal)
+        }
+    }
+
+    // Sync pagerState to ViewModel
+    LaunchedEffect(pagerState.currentPage) {
+        onSelectTab(LibraryTab.entries[pagerState.currentPage])
+    }
+
+    var bookIdToDelete by remember { mutableStateOf<Long?>(null) }
+    var bookTitleToDelete by remember { mutableStateOf("") }
+
+    if (bookIdToDelete != null) {
+        DeleteBookDialog(
+            bookTitle = bookTitleToDelete,
+            onConfirm = {
+                onDeleteBook(bookIdToDelete!!)
+                bookIdToDelete = null
+            },
+            onDismiss = { bookIdToDelete = null },
+        )
+    }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        PrimaryScrollableTabRow(
+            selectedTabIndex = pagerState.currentPage,
+            containerColor = SoloShelfTheme.colorScheme.surfaceContainer,
+            indicator = {
+                TabRowDefaults.PrimaryIndicator(
+                    modifier = Modifier.tabIndicatorOffset(pagerState.currentPage),
+                    width = 40.dp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    shape = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp),
+                )
+            },
+            divider = {
+                HorizontalDivider(
+                    color = SoloShelfTheme.colorScheme.outlineVariant,
+                )
+            },
+            edgePadding = 0.dp,
+        ) {
+            LibraryTab.entries.forEach { tab ->
+                Tab(
+                    selected = pagerState.currentPage == tab.ordinal,
+                    onClick = { onSelectTab(tab) },
+                    text = {
+                        Text(
+                            text = when (tab) {
+                                LibraryTab.Ebooks -> stringResource(R.string.ebooks)
+                                LibraryTab.Audiobooks -> stringResource(R.string.audiobooks)
+                            },
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = if (pagerState.currentPage == tab.ordinal) FontWeight.Bold else FontWeight.Medium,
+                            color = if (pagerState.currentPage == tab.ordinal) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    },
+                )
+            }
+        }
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+            beyondViewportPageCount = 1,
+        ) { page ->
+            val tab = LibraryTab.entries[page]
+            LibraryGrid(
+                tab = tab,
+                recentBooks = if (tab == LibraryTab.Ebooks) recentEbooks else recentAudiobooks,
+                allBooks = if (tab == LibraryTab.Ebooks) ebooks else audiobooks,
+                collections = collections,
+                onItemClick = if (tab == LibraryTab.Ebooks) onNavigateToBookDetails else onNavigateToPlayer,
+                onNavigateToBookDetails = onNavigateToBookDetails,
+                onDeleteBook = { id, title -> 
+                    bookIdToDelete = id
+                    bookTitleToDelete = title
+                },
+                onAddBookToCollection = onAddBookToCollection,
+            )
+        }
+    }
+}
+
+@Composable
+fun LibraryGrid(
+    tab: LibraryTab,
+    recentBooks: ImmutableList<LibraryItem>,
+    allBooks: LazyPagingItems<out LibraryItem>,
+    collections: ImmutableList<CollectionWithBooks>,
+    onItemClick: (Long) -> Unit,
+    onNavigateToBookDetails: (Long) -> Unit,
+    onDeleteBook: (Long, String) -> Unit,
+    onAddBookToCollection: (Long, Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val isAtLeastMedium = isAtLeastMedium()
+    val minItemWidth = if (tab == LibraryTab.Audiobooks) {
+        if (!isAtLeastMedium) Constants.AUDIOBOOK_ITEM_WIDTH_COMPACT else Constants.AUDIOBOOK_ITEM_WIDTH_MEDIUM
+    } else {
+        if (!isAtLeastMedium) Constants.EBOOK_ITEM_WIDTH_COMPACT else Constants.EBOOK_ITEM_WIDTH_MEDIUM
+    }
 
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 300.dp),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(0.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        columns = GridCells.Adaptive(minSize = minItemWidth),
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         item(
             key = "recent_books_section",
             span = { GridItemSpan(maxLineSpan) },
         ) {
-            AnimatedVisibility(
-                visible = recentBooks.itemCount > 0,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically(),
+            Column(
+                modifier = Modifier
+                    .ignoreGridPadding(16.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Column(modifier = Modifier.animateContentSize(animationSpec = tween(durationMillis = 300))) {
-                    SectionTitle("Currently Reading", modifier = Modifier.padding(horizontal = 16.dp))
-                    Spacer(Modifier.height(16.dp))
-                    RecentBooksRow(recentBooks, onNavigateToBookDetails)
-                    Spacer(Modifier.height(24.dp))
-                }
+                SectionTitle(
+                    stringResource(
+                        when (tab) {
+                            LibraryTab.Ebooks -> R.string.currently_reading
+                            LibraryTab.Audiobooks -> R.string.continue_listening
+                        },
+                    ),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
+                RecentBooksRow(
+                    books = recentBooks,
+                    onBookClick = onItemClick,
+                    onViewDetails = onNavigateToBookDetails,
+                    onDeleteBook = onDeleteBook,
+                    collections = collections,
+                    onAddBookToCollection = onAddBookToCollection,
+                )
+                SectionTitle(
+                    stringResource(
+                        when (tab) {
+                            LibraryTab.Ebooks -> R.string.all_books
+                            LibraryTab.Audiobooks -> R.string.all_audiobooks
+                        },
+                    ),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
             }
-        }
-
-        item(
-            key = "all_books_title",
-            span = { GridItemSpan(maxLineSpan) },
-        ) {
-            SectionTitle("All Books", modifier = Modifier.padding(horizontal = 16.dp))
         }
 
         items(
             count = allBooks.itemCount,
-            key = allBooks.itemKey { it.book.bookId },
+            key = allBooks.itemKey { it.id },
         ) { index ->
-            allBooks[index]?.let { bookAndProgress ->
-                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    BookListItem(bookAndProgress, onClick = { onNavigateToBookDetails(bookAndProgress.book.bookId) })
-                }
+            allBooks[index]?.let { libraryItem ->
+                BookItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    libraryItem = libraryItem,
+                    showProgress = true,
+                    onClick = { onItemClick(libraryItem.id) },
+                    onViewDetails = { onNavigateToBookDetails(libraryItem.id) },
+                    onDelete = { onDeleteBook(libraryItem.id, libraryItem.title) },
+                    collections = collections.map { it.collection },
+                    onAddToCollection = { collectionId ->
+                        onAddBookToCollection(libraryItem.id, collectionId)
+                    },
+                )
             }
         }
     }
 }
+
+private fun Modifier.ignoreGridPadding(
+    padding: Dp,
+): Modifier =
+    layout { measurable, constraints ->
+        val paddingPx = padding.roundToPx()
+        val expandedWidth = constraints.maxWidth + paddingPx * 2
+        val placeable = measurable.measure(
+            constraints.copy(
+                minWidth = expandedWidth,
+                maxWidth = expandedWidth,
+            ),
+        )
+        layout(constraints.maxWidth, placeable.height) {
+            placeable.place(-paddingPx, 0)
+        }
+    }
 
 @Composable
 fun SectionTitle(
@@ -126,410 +310,65 @@ fun SectionTitle(
 
 @Composable
 private fun RecentBooksRow(
-    books: LazyPagingItems<BookAndProgress>,
+    books: List<LibraryItem>,
     onBookClick: (Long) -> Unit,
+    onViewDetails: (Long) -> Unit,
+    onDeleteBook: (Long, String) -> Unit,
+    collections: List<CollectionWithBooks>,
+    onAddBookToCollection: (Long, Long) -> Unit,
 ) {
+    val isAtLeastMedium = isAtLeastMedium()
+
     LazyRow(
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(horizontal = 16.dp),
-        modifier = Modifier.animateContentSize(),
     ) {
         items(
-            count = books.itemCount,
-            key = books.itemKey { it.book.bookId },
-        ) { index ->
-            books[index]?.let { bookAndProgress ->
-                RecentBookItem(bookAndProgress, onClick = { onBookClick(bookAndProgress.book.bookId) })
-            }
-        }
-    }
-}
-
-@Composable
-private fun RecentBookItem(
-    bookAndProgress: BookAndProgress,
-    onClick: () -> Unit,
-) {
-    val book = bookAndProgress.book
-    val progress = bookAndProgress.progress
-    Column(
-        modifier = Modifier
-            .width(140.dp)
-            .clickable(onClick = onClick),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(140.dp, 200.dp)
-                .clip(RoundedCornerShape(12.dp)),
-        ) {
-            AsyncImage(
-                model = book.coverPath ?: book.filePath,
-                contentDescription = book.title,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.book_icon),
-                error = painterResource(R.drawable.book_icon),
-            )
-
-            // Format Icon Overlay
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(8.dp)
-                    .size(36.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                tonalElevation = 4.dp,
-                shadowElevation = 4.dp,
-            ) {
-                val icon = if (book.format == "AUDIOBOOK") {
-                    Icons.Default.Headphones
-                } else {
-                    Icons.AutoMirrored.Filled.MenuBook
-                }
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    modifier = Modifier.padding(8.dp),
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = book.title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = book.author,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Spacer(Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            val percentage = progress?.readPercentage ?: 0f
-            CircularProgressIndicator(
-                progress = { if (percentage > 0) percentage / 100f else 0f },
-                modifier = Modifier.size(18.dp),
-                strokeWidth = 2.dp,
-                color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.outlineVariant,
-            )
-            Spacer(Modifier.width(8.dp))
-            val progressText = if (book.format == "AUDIOBOOK") {
-                if (progress != null) {
-                    val remainingSeconds = (book.totalPages * (1 - progress.readPercentage / 100f)).toLong()
-                    val hours = remainingSeconds / 3600
-                    val minutes = (remainingSeconds % 3600) / 60
-                    if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
-                } else {
-                    val hours = book.totalPages / 3600
-                    val minutes = (book.totalPages % 3600) / 60
-                    if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
-                }
+            items = books,
+            key = { it.id },
+        ) { libraryItem ->
+            val isAudiobooks = libraryItem is LibraryItem.Audiobook
+            val width = if (isAudiobooks) {
+                if (isAtLeastMedium) Constants.AUDIOBOOK_ITEM_WIDTH_MEDIUM else Constants.AUDIOBOOK_ITEM_WIDTH_COMPACT
             } else {
-                if (progress != null) {
-                    val pagesRead = (book.totalPages * (progress.readPercentage / 100f)).toInt()
-                    "${book.totalPages - pagesRead} pages left"
-                } else {
-                    "${book.totalPages} pages left"
-                }
+                if (isAtLeastMedium) Constants.EBOOK_ITEM_WIDTH_MEDIUM else Constants.EBOOK_ITEM_WIDTH_COMPACT
             }
-            Text(
-                text = progressText,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            BookItem(
+                modifier = Modifier.width(width),
+                libraryItem = libraryItem,
+                onClick = { onBookClick(libraryItem.id) },
+                onViewDetails = { onViewDetails(libraryItem.id) },
+                onDelete = { onDeleteBook(libraryItem.id, libraryItem.title) },
+                collections = collections.map { it.collection },
+                onAddToCollection = { collectionId ->
+                    onAddBookToCollection(libraryItem.id, collectionId)
+                },
             )
         }
     }
 }
 
+@Preview
 @Composable
-private fun BookListItem(
-    bookAndProgress: BookAndProgress,
-    onClick: () -> Unit,
-) {
-    val book = bookAndProgress.book
-    val progress = bookAndProgress.progress
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.Top,
-        ) {
-            AsyncImage(
-                model = book.coverPath ?: book.filePath,
-                contentDescription = book.title,
-                modifier = Modifier
-                    .size(80.dp, 120.dp)
-                    .clip(RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(R.drawable.book_icon),
-                error = painterResource(R.drawable.book_icon),
-            )
-            Spacer(Modifier.width(16.dp))
-            Column(
-                modifier = Modifier.height(120.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column {
-                    Text(
-                        text = book.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = "by ${book.author}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    if (book.totalPages > 0 || book.format == "AUDIOBOOK") {
-                        val pagesText = if (book.format == "AUDIOBOOK") {
-                            if (progress != null) {
-                                // Assuming totalPages stores duration in seconds for audiobooks
-                                val remainingSeconds = (book.totalPages * (1 - progress.readPercentage / 100f)).toLong()
-                                val hours = remainingSeconds / 3600
-                                val minutes = (remainingSeconds % 3600) / 60
-                                if (hours > 0) "${hours}h ${minutes}m left" else "${minutes}m left"
-                            } else {
-                                val hours = book.totalPages / 3600
-                                val minutes = (book.totalPages % 3600) / 60
-                                if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
-                            }
-                        } else {
-                            if (progress != null) {
-                                val pagesRead = (book.totalPages * (progress.readPercentage / 100f)).toInt()
-                                "${book.totalPages - pagesRead} pages left"
-                            } else {
-                                "${book.totalPages} pages"
-                            }
-                        }
-                        Text(
-                            text = pagesText,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                        )
-                    }
-                }
+fun LibraryPreview() {
+    val ebooks = flowOf(PagingData.from(PreviewData.sampleLibraryEbooks)).collectAsLazyPagingItems()
+    val audiobooks = flowOf(PagingData.empty<LibraryItem.Audiobook>()).collectAsLazyPagingItems()
 
-                if (progress != null && progress.readPercentage > 0) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        LinearProgressIndicator(
-                            progress = { progress.readPercentage / 100f },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp)),
-                            color = MaterialTheme.colorScheme.secondary,
-                            trackColor = MaterialTheme.colorScheme.outlineVariant,
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "${progress.readPercentage.toInt()}%",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val icon = if (book.format == "AUDIOBOOK") {
-                        Icons.Default.Headphones
-                    } else {
-                        Icons.AutoMirrored.Filled.MenuBook
-                    }
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = book.format.lowercase().replaceFirstChar { it.uppercase() },
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@ThemePreviews
-@Composable
-private fun BookListItemPreview() {
     SoloShelfTheme {
-        Surface {
-            BookListItem(
-                bookAndProgress = BookAndProgress(
-                    book = Book(
-                        title = "The Fellowship of the Ring",
-                        author = "J.R.R Tolkien",
-                        format = "EPUB",
-                        totalPages = 234,
-                        filePath = "",
-                    ),
-                    progress = null,
-                ),
-                onClick = {},
-            )
-        }
-    }
-}
-
-@ThemePreviews
-@Composable
-private fun BookListItemWithProgressPreview() {
-    SoloShelfTheme {
-        Surface {
-            BookListItem(
-                bookAndProgress = BookAndProgress(
-                    book = Book(
-                        title = "The Fellowship of the Ring",
-                        author = "J.R.R Tolkien",
-                        format = "EPUB",
-                        totalPages = 468,
-                        filePath = "",
-                    ),
-                    progress = ReadingProgress(
-                        bookId = 1L,
-                        lastPosition = "",
-                        readPercentage = 50f,
-                        lastAccessed = 0L,
-                    ),
-                ),
-                onClick = {},
-            )
-        }
-    }
-}
-
-@ThemePreviews
-@Composable
-private fun AudiobookListItemPreview() {
-    SoloShelfTheme {
-        Surface {
-            BookListItem(
-                bookAndProgress = BookAndProgress(
-                    book = Book(
-                        title = "The Fellowship of the Ring",
-                        author = "J.R.R Tolkien",
-                        format = "AUDIOBOOK",
-                        totalPages = 0,
-                        filePath = "",
-                    ),
-                    progress = null,
-                ),
-                onClick = {},
-            )
-        }
-    }
-}
-
-@ThemePreviews
-@Composable
-private fun AudiobookListItemWithProgressPreview() {
-    SoloShelfTheme {
-        Surface {
-            BookListItem(
-                bookAndProgress = BookAndProgress(
-                    book = Book(
-                        title = "The Fellowship of the Ring",
-                        author = "J.R.R Tolkien",
-                        format = "AUDIOBOOK",
-                        totalPages = 81800, // Roughly 22h 43m
-                        filePath = "",
-                    ),
-                    progress = ReadingProgress(
-                        bookId = 1L,
-                        lastPosition = "",
-                        readPercentage = 0f,
-                        lastAccessed = 0L,
-                    ),
-                ),
-                onClick = {},
-            )
-        }
-    }
-}
-
-@ThemePreviews
-@Composable
-private fun RecentBookItemPreview() {
-    SoloShelfTheme {
-        Surface {
-            RecentBookItem(
-                bookAndProgress = BookAndProgress(
-                    book = Book(
-                        title = "The Fellowship of the Ring",
-                        author = "J.R.R Tolkien",
-                        format = "EPUB",
-                        totalPages = 468,
-                        filePath = "",
-                    ),
-                    progress = ReadingProgress(
-                        bookId = 1L,
-                        lastPosition = "",
-                        readPercentage = 48.5f,
-                        lastAccessed = 0L,
-                    ),
-                ),
-                onClick = {},
-            )
-        }
-    }
-}
-
-@ThemePreviews
-@Composable
-private fun RecentAudiobookItemPreview() {
-    SoloShelfTheme {
-        Surface {
-            RecentBookItem(
-                bookAndProgress = BookAndProgress(
-                    book = Book(
-                        title = "Harry Potter and the Sorcerer's Stone",
-                        author = "J. K. Rowling",
-                        format = "AUDIOBOOK",
-                        totalPages = 6060, // Total duration
-                        filePath = "",
-                    ),
-                    progress = ReadingProgress(
-                        bookId = 2L,
-                        lastPosition = "",
-                        readPercentage = 0f, // Simplified for preview
-                        lastAccessed = 0L,
-                    ),
-                ),
-                onClick = {},
+        Surface(color = SoloShelfTheme.colorScheme.surfaceContainer) {
+            LibraryContent(
+                ebooks = ebooks,
+                audiobooks = audiobooks,
+                recentEbooks = PreviewData.sampleLibraryEbooks.take(2).toImmutableList(),
+                recentAudiobooks = emptyList<LibraryItem.Audiobook>().toImmutableList(),
+                collections = PreviewData.sampleCollections.toImmutableList(),
+                selectedTab = LibraryTab.Ebooks,
+                onNavigateToBookDetails = {},
+                onNavigateToPlayer = {},
+                onSelectTab = {},
+                onDeleteBook = { _ -> },
+                onAddBookToCollection = { _, _ -> },
             )
         }
     }

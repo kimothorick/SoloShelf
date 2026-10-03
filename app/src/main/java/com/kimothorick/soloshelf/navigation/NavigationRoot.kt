@@ -5,66 +5,180 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation3.runtime.NavEntry
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.kimothorick.soloshelf.ui.main.MainViewModel
 import com.kimothorick.soloshelf.ui.screens.BookDetails
 import com.kimothorick.soloshelf.ui.screens.main.MainScreen
+import com.kimothorick.soloshelf.ui.screens.player.PlayerScreen
+import com.kimothorick.soloshelf.ui.screens.reader.ReaderScreen
+import com.kimothorick.soloshelf.ui.screens.settings.AppearanceScreen
+import com.kimothorick.soloshelf.ui.screens.settings.EverythingElseScreen
+import com.kimothorick.soloshelf.ui.screens.settings.LibraryStorageScreen
 import com.kimothorick.soloshelf.ui.screens.settings.Settings
+import com.kimothorick.soloshelf.ui.screens.settings.SettingsTwoPaneScene
 import com.kimothorick.soloshelf.ui.screens.settings.SettingsViewModel
+import com.kimothorick.soloshelf.ui.screens.settings.rememberSettingsTwoPaneSceneStrategy
 
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
+import com.kimothorick.soloshelf.ui.screens.player.PlayerViewModel
+
+data class MainDestination(
+    val route: Route,
+    val labelRes: Int,
+    val icon: ImageVector,
+)
+
+@OptIn(UnstableApi::class)
 @Composable
 fun NavigationRoot(
     mainViewModel: MainViewModel,
     settingsViewModel: SettingsViewModel,
+    playerViewModel: PlayerViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val rootBackStack = rememberSaveable(
-        saver = listSaver(
-            save = { it.toList() },
-            restore = { mutableStateListOf<Route>().apply { addAll(it) } },
-        ),
-    ) {
-        mutableStateListOf<Route>(Route.Library)
+    val rootBackStack = rememberNavBackStack(Route.Library)
+
+    val settingsTwoPaneStrategy = rememberSettingsTwoPaneSceneStrategy<NavKey>()
+
+    val entryProvider = remember {
+        entryProvider<NavKey> {
+            entry<Route.Settings>(metadata = SettingsTwoPaneScene.listPane()) {
+                Settings(
+                    viewModel = settingsViewModel,
+                    onBack = { rootBackStack.removeLastOrNull() },
+                    onNavigateToAppearance = {
+                        rootBackStack.addSettingsDetail(Route.Appearance)
+                    },
+                    onNavigateToLibraryStorage = {
+                        rootBackStack.addSettingsDetail(Route.LibraryStorage)
+                    },
+                    onNavigateToEverythingElse = {
+                        rootBackStack.addSettingsDetail(Route.EverythingElse)
+                    },
+                )
+            }
+
+            entry<Route.Appearance>(metadata = SettingsTwoPaneScene.detailPane()) {
+                AppearanceScreen(
+                    viewModel = settingsViewModel,
+                    onBack = { rootBackStack.removeLastOrNull() },
+                )
+            }
+
+            entry<Route.LibraryStorage>(metadata = SettingsTwoPaneScene.detailPane()) {
+                LibraryStorageScreen(
+                    viewModel = settingsViewModel,
+                    onBack = { rootBackStack.removeLastOrNull() },
+                )
+            }
+
+            entry<Route.EverythingElse>(metadata = SettingsTwoPaneScene.detailPane()) {
+                EverythingElseScreen(
+                    onBack = { rootBackStack.removeLastOrNull() },
+                )
+            }
+
+            entry<Route.BookDetails> { key ->
+                BookDetails(
+                    bookId = key.bookId,
+                    onBack = { rootBackStack.removeLastOrNull() },
+                    onNavigateToReader = { bookId ->
+                        rootBackStack.add(Route.Reader(bookId))
+                    },
+                    onNavigateToPlayer = { bookId ->
+                        rootBackStack.add(Route.Player(bookId))
+                    },
+                    viewModel = hiltViewModel(key = key.bookId.toString()),
+                )
+            }
+
+            entry<Route.Reader> { key ->
+                val context = LocalContext.current
+                val fragmentActivity = remember(context) {
+                    var currentContext = context
+                    while (currentContext is android.content.ContextWrapper) {
+                        if (currentContext is FragmentActivity) break
+                        currentContext = currentContext.baseContext
+                    }
+                    currentContext as? FragmentActivity
+                }
+                ReaderScreen(
+                    bookId = key.bookId,
+                    onBack = { rootBackStack.removeLastOrNull() },
+                    viewModel = fragmentActivity?.let {
+                        hiltViewModel(viewModelStoreOwner = it)
+                    } ?: hiltViewModel(),
+                )
+            }
+
+            entry<Route.Player> { key ->
+                PlayerScreen(
+                    bookId = key.bookId,
+                    onBack = { rootBackStack.removeLastOrNull() },
+                    viewModel = playerViewModel,
+                )
+            }
+
+            entry<Route.Library> {
+                MainScreen(
+                    onNavigateToSettings = { rootBackStack.add(Route.Settings) },
+                    onNavigateToBookDetails = { bookId ->
+                        rootBackStack.add(Route.BookDetails(bookId))
+                    },
+                    onNavigateToPlayer = { bookId ->
+                        rootBackStack.add(Route.Player(bookId))
+                    },
+                    viewModel = mainViewModel,
+                    playerViewModel = playerViewModel,
+                )
+            }
+
+            entry<Route.Bookshelf> {
+                MainScreen(
+                    onNavigateToSettings = { rootBackStack.add(Route.Settings) },
+                    onNavigateToBookDetails = { bookId ->
+                        rootBackStack.add(Route.BookDetails(bookId))
+                    },
+                    onNavigateToPlayer = { bookId ->
+                        rootBackStack.add(Route.Player(bookId))
+                    },
+                    viewModel = mainViewModel,
+                    playerViewModel = playerViewModel,
+                )
+            }
+
+            entry<Route.Search> {
+                MainScreen(
+                    onNavigateToSettings = { rootBackStack.add(Route.Settings) },
+                    onNavigateToBookDetails = { bookId ->
+                        rootBackStack.add(Route.BookDetails(bookId))
+                    },
+                    onNavigateToPlayer = { bookId ->
+                        rootBackStack.add(Route.Player(bookId))
+                    },
+                    viewModel = mainViewModel,
+                    playerViewModel = playerViewModel,
+                )
+            }
+        }
     }
 
     NavDisplay(
         modifier = modifier,
         backStack = rootBackStack,
-        onBack = { rootBackStack.removeAt(rootBackStack.lastIndex) },
-        entryProvider = { key ->
-            when (key) {
-                is Route.Settings -> NavEntry(key) {
-                    Settings(
-                        viewModel = settingsViewModel,
-                        onBack = { rootBackStack.removeAt(rootBackStack.lastIndex) },
-                    )
-                }
-
-                is Route.BookDetails -> NavEntry(key) {
-                    BookDetails(
-                        bookId = key.bookId,
-                        onBack = { rootBackStack.removeAt(rootBackStack.lastIndex) },
-                        viewModel = hiltViewModel(key = key.bookId.toString())
-                    )
-                }
-
-                else -> NavEntry(key) {
-                    MainScreen(
-                        onNavigateToSettings = { rootBackStack.add(Route.Settings) },
-                        onNavigateToBookDetails = { bookId ->
-                            rootBackStack.add(Route.BookDetails(bookId))
-                        },
-                        viewModel = mainViewModel,
-                    )
-                }
-            }
-        },
+        onBack = { rootBackStack.removeLastOrNull() },
+        sceneStrategies = listOf(settingsTwoPaneStrategy),
+        entryProvider = entryProvider,
         transitionSpec = {
             slideInHorizontally(
                 initialOffsetX = { it },
@@ -93,4 +207,12 @@ fun NavigationRoot(
             )
         },
     )
+}
+
+private fun MutableList<NavKey>.addSettingsDetail(
+    detail: Route,
+) {
+    val settingsDetails = listOf(Route.Appearance, Route.LibraryStorage, Route.EverythingElse)
+    removeAll { it in settingsDetails }
+    add(detail)
 }

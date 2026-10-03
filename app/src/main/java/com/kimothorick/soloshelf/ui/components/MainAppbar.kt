@@ -2,9 +2,6 @@ package com.kimothorick.soloshelf.ui.components
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.FilterList
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.AppBarRow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -41,8 +38,8 @@ fun MainAppBar(
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            scrolledContainerColor = MaterialTheme.colorScheme.background,
+            containerColor = SoloShelfTheme.colorScheme.surfaceContainer,
+            scrolledContainerColor = SoloShelfTheme.colorScheme.surfaceContainer,
         ),
         actions = {
             AppBarRow(modifier = Modifier.padding(end = 16.dp)) {
@@ -50,7 +47,7 @@ fun MainAppBar(
                     onClick = onShowSortSheet,
                     icon = {
                         CircularIconButton(
-                            icon = Icons.Rounded.FilterList,
+                            icon = R.drawable.ic_filter,
                             label = filterLabel,
                             onClick = onShowSortSheet,
                         )
@@ -62,7 +59,7 @@ fun MainAppBar(
                     onClick = onNavigateToSettings,
                     icon = {
                         CircularIconButton(
-                            icon = Icons.Rounded.Settings,
+                            icon = R.drawable.ic_settings,
                             label = settingsLabel,
                             onClick = onNavigateToSettings,
                         )

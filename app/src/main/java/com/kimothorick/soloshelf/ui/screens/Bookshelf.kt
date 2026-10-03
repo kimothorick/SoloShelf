@@ -31,24 +31,25 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.kimothorick.soloshelf.R
 import com.kimothorick.soloshelf.data.models.Book
-import com.kimothorick.soloshelf.data.models.Collection
 import com.kimothorick.soloshelf.data.models.CollectionWithBooks
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
+import com.kimothorick.soloshelf.ui.tooling.PreviewData
 import com.kimothorick.soloshelf.ui.tooling.ThemePreviews
 
 @Composable
 fun Bookshelf(
+    modifier: Modifier = Modifier,
     viewModel: BookshelfViewModel = hiltViewModel(),
 ) {
     val collections by viewModel.collections.collectAsState()
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -129,7 +130,7 @@ private fun BookCover(
     modifier: Modifier = Modifier,
 ) {
     AsyncImage(
-        model = book.coverPath ?: book.filePath,
+        model = book.coverPath,
         contentDescription = book.title,
         modifier = modifier,
         contentScale = ContentScale.Crop,
@@ -143,21 +144,6 @@ private fun BookCover(
 private fun BookshelfPreview() {
     SoloShelfTheme {
         Surface {
-            // Mock data for preview
-            val mockBooks = listOf(
-                Book(title = "The Fellowship of the Ring", author = "J.R.R Tolkien", format = "EPUB", filePath = ""),
-                Book(title = "The Two Towers", author = "J.R.R Tolkien", format = "EPUB", filePath = ""),
-                Book(title = "The Return of the King", author = "J.R.R Tolkien", format = "EPUB", filePath = ""),
-            )
-            val mockCollections = listOf(
-                CollectionWithBooks(Collection(name = "Fantasy"), mockBooks),
-                CollectionWithBooks(Collection(name = "Fantasy"), mockBooks),
-                CollectionWithBooks(Collection(name = "Fantasy"), mockBooks),
-                CollectionWithBooks(Collection(name = "Fantasy"), mockBooks),
-                CollectionWithBooks(Collection(name = "Fantasy"), mockBooks),
-                CollectionWithBooks(Collection(name = "Fantasy"), mockBooks),
-            )
-
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxSize(),
@@ -168,7 +154,7 @@ private fun BookshelfPreview() {
                 item(span = { GridItemSpan(2) }) {
                     SectionTitle("Collections")
                 }
-                items(mockCollections) { item ->
+                items(PreviewData.sampleCollections) { item ->
                     CollectionItem(collectionWithBooks = item)
                 }
             }

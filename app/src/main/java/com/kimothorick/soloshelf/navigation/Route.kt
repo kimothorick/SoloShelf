@@ -6,7 +6,9 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed interface Route : NavKey, Parcelable {
+sealed interface Route :
+    NavKey,
+    Parcelable {
     @Serializable
     @Parcelize
     data object Library : Route, NavKey
@@ -17,7 +19,7 @@ sealed interface Route : NavKey, Parcelable {
 
     @Serializable
     @Parcelize
-    data object Audiobooks : Route, NavKey
+    data object Search : Route, NavKey
 
     @Serializable
     @Parcelize
@@ -25,5 +27,34 @@ sealed interface Route : NavKey, Parcelable {
 
     @Serializable
     @Parcelize
-    data class BookDetails(val bookId: Long) : Route, NavKey
+    data object Appearance : Route, NavKey
+
+    @Serializable
+    @Parcelize
+    data object LibraryStorage : Route, NavKey
+
+    @Serializable
+    @Parcelize
+    data object EverythingElse : Route, NavKey
+
+    @Serializable
+    @Parcelize
+    data class BookDetails(
+        val bookId: Long,
+    ) : Route,
+        NavKey
+
+    @Serializable
+    @Parcelize
+    data class Reader(
+        val bookId: Long,
+    ) : Route,
+        NavKey
+
+    @Serializable
+    @Parcelize
+    data class Player(
+        val bookId: Long,
+    ) : Route,
+        NavKey
 }

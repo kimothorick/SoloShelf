@@ -1,46 +1,35 @@
 package com.kimothorick.soloshelf.ui.screens.settings
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kimothorick.soloshelf.BuildConfig
 import com.kimothorick.soloshelf.R
 import com.kimothorick.soloshelf.data.preferences.AppTheme
-import com.kimothorick.soloshelf.ui.components.CircularIconButton
-import com.kimothorick.soloshelf.ui.components.ToggleableButtonGroup
-import com.kimothorick.soloshelf.ui.components.ToggleableButtonItem
+import com.kimothorick.soloshelf.ui.components.SoloShelfSegmentedListItem
+import com.kimothorick.soloshelf.ui.components.SoloShelfTopAppBar
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
 import com.kimothorick.soloshelf.ui.tooling.DevicePreviews
 
@@ -48,15 +37,21 @@ import com.kimothorick.soloshelf.ui.tooling.DevicePreviews
 fun Settings(
     viewModel: SettingsViewModel,
     onBack: () -> Unit,
+    onNavigateToAppearance: () -> Unit,
+    onNavigateToLibraryStorage: () -> Unit,
+    onNavigateToEverythingElse: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val themePreference by viewModel.themePreference.collectAsStateWithLifecycle()
     val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
 
-    SettingsContent(
+    SettingsScreenContent(
         themePreference = themePreference,
         dynamicColor = dynamicColor,
         onBack = onBack,
+        onNavigateToAppearance = onNavigateToAppearance,
+        onNavigateToLibraryStorage = onNavigateToLibraryStorage,
+        onNavigateToEverythingElse = onNavigateToEverythingElse,
         onThemeChange = viewModel::setTheme,
         onDynamicColorChange = viewModel::setDynamicColor,
     )
@@ -64,10 +59,13 @@ fun Settings(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SettingsContent(
+fun SettingsScreenContent(
     themePreference: AppTheme,
     dynamicColor: Boolean,
     onBack: () -> Unit,
+    onNavigateToAppearance: () -> Unit,
+    onNavigateToLibraryStorage: () -> Unit,
+    onNavigateToEverythingElse: () -> Unit,
     onThemeChange: (AppTheme) -> Unit,
     onDynamicColorChange: (Boolean) -> Unit,
 ) {
@@ -76,34 +74,13 @@ fun SettingsContent(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.settings_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                    )
-                },
-                navigationIcon = {
-                    CircularIconButton(
-                        modifier = Modifier.padding(start = 12.dp),
-                        icon = Icons.AutoMirrored.Filled.ArrowBack,
-                        label = stringResource(R.string.back),
-                        onClick = { onBack() },
-                    )
-                },
-                actions = {
-                    // Empty spacer to balance the navigation icon and keep title centered
-                    Spacer(modifier = Modifier.width(52.dp))
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.background,
-                ),
+            SoloShelfTopAppBar(
+                title = stringResource(R.string.settings_title),
+                onBackClick = onBack,
                 scrollBehavior = scrollBehavior,
             )
         },
+        containerColor = SoloShelfTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -112,67 +89,13 @@ fun SettingsContent(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            item {
-                SettingsSection(title = stringResource(R.string.appearance)) {
-                    ThemeOptionsSettingsItem(
-                        selectedTheme = themePreference,
-                        setTheme = onThemeChange,
-                    )
-                    SettingsItem(
-                        title = stringResource(R.string.dynamic_color),
-                        description = stringResource(R.string.dynamic_color_desc),
-                        trailingContent = {
-                            Switch(
-                                checked = dynamicColor,
-                                onCheckedChange = onDynamicColorChange,
-                            )
-                        },
-                    )
-                }
-            }
-
-            item {
-                SettingsSection(title = stringResource(R.string.language)) {
-                    SettingsItem(
-                        title = stringResource(R.string.preferred_language),
-                        description = stringResource(R.string.upcoming_feature),
-                        onClick = null,
-                    )
-                }
-            }
-
-            item {
-                SettingsSection(title = stringResource(R.string.support_feedback)) {
-                    SettingsItem(
-                        title = stringResource(R.string.feedback),
-                        description = stringResource(R.string.feedback_desc),
-                        onClick = { /* TODO: Implement feedback */ },
-                    )
-                    SettingsItem(
-                        title = stringResource(R.string.rate_app),
-                        description = stringResource(R.string.rate_app_desc),
-                        onClick = { /* TODO: Implement rate app */ },
-                    )
-                }
-            }
-
-            item {
-                SettingsSection(title = stringResource(R.string.about_soloshelf)) {
-                    SettingsItem(
-                        title = stringResource(R.string.privacy_policy),
-                        onClick = { /* TODO: Implement privacy policy */ },
-                    )
-                    SettingsItem(
-                        title = stringResource(R.string.app_version),
-                        description = "v${BuildConfig.VERSION_NAME}",
-                    )
-                    SettingsItem(
-                        title = stringResource(R.string.developer_credits),
-                        description = stringResource(R.string.developer_credits_desc),
-                        onClick = { /* TODO: Implement developer credits */ },
-                    )
-                }
-            }
+            generalSection(
+                onNavigateToAppearance = onNavigateToAppearance,
+                onNavigateToLibraryStorage = onNavigateToLibraryStorage,
+            )
+            otherSection(
+                onNavigateToEverythingElse = onNavigateToEverythingElse,
+            )
 
             item {
                 Spacer(modifier = Modifier.height(16.dp))
@@ -181,115 +104,111 @@ fun SettingsContent(
     }
 }
 
-@Composable
-fun ThemeOptionsSettingsItem(
-    modifier: Modifier = Modifier,
-    selectedTheme: AppTheme,
-    setTheme: (AppTheme) -> Unit,
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun LazyListScope.generalSection(
+    onNavigateToAppearance: () -> Unit,
+    onNavigateToLibraryStorage: () -> Unit,
 ) {
-    val themeOptions = AppTheme.entries
-    val themeOptionsLabels = listOf(
-        stringResource(R.string.theme_auto),
-        stringResource(R.string.theme_light),
-        stringResource(R.string.theme_dark),
-    )
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-            .padding(16.dp),
-    ) {
-        Text(
-            text = stringResource(R.string.theme),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-
-        val items = themeOptions.mapIndexed { index, theme ->
-            ToggleableButtonItem(
-                label = themeOptionsLabels[index],
-                isSelected = theme == selectedTheme,
-                identifier = theme,
-            )
-        }
-
-        ToggleableButtonGroup(
-            items = items,
-            onItemSelected = { setTheme(it.identifier as AppTheme) },
-            modifier = Modifier.fillMaxWidth(),
-        )
+    item {
+        SettingsSectionHeader(title = stringResource(R.string.settings_general))
     }
-}
 
-@Composable
-fun SettingsSection(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-        )
-
+    item {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp)),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            modifier = Modifier.clip(
+                shape = MaterialTheme.shapes.extraLarge,
+            ),
         ) {
-            content()
+            SoloShelfSegmentedListItem(
+                onClick = onNavigateToAppearance,
+                shapes = ListItemDefaults.segmentedShapes(0, 3),
+                leadingContent = { Icon(painterResource(R.drawable.ic_palette), contentDescription = null) },
+                headlineText = stringResource(R.string.appearance),
+                supportingText = stringResource(R.string.appearance_desc),
+            )
+            SoloShelfSegmentedListItem(
+                onClick = { /* TODO: Language Selection */ },
+                shapes = ListItemDefaults.segmentedShapes(1, 3),
+                leadingContent = { Icon(painterResource(R.drawable.ic_language), contentDescription = null) },
+                headlineText = stringResource(R.string.language),
+                supportingText = stringResource(R.string.language_english),
+            )
+            SoloShelfSegmentedListItem(
+                onClick = onNavigateToLibraryStorage,
+                shapes = ListItemDefaults.segmentedShapes(2, 3),
+                leadingContent = { Icon(painterResource(R.drawable.ic_folder), contentDescription = null) },
+                headlineText = stringResource(R.string.library_storage),
+                supportingText = stringResource(R.string.library_storage_desc),
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun LazyListScope.otherSection(
+    onNavigateToEverythingElse: () -> Unit,
+) {
+    item {
+        SettingsSectionHeader(title = stringResource(R.string.settings_other))
+    }
+
+    item {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+            modifier = Modifier.clip(
+                shape = MaterialTheme.shapes.extraLarge,
+            ),
+        ) {
+            SoloShelfSegmentedListItem(
+                onClick = { /* TODO: Privacy Policy */ },
+                shapes = ListItemDefaults.segmentedShapes(0, 3),
+                leadingContent = { Icon(painterResource(R.drawable.ic_privacy_tip), contentDescription = null) },
+                headlineText = stringResource(R.string.privacy_policy),
+                supportingText = "",
+            )
+            SoloShelfSegmentedListItem(
+                onClick = { /* TODO: Feedback */ },
+                shapes = ListItemDefaults.segmentedShapes(1, 3),
+                leadingContent = { Icon(painterResource(R.drawable.ic_mail), contentDescription = null) },
+                headlineText = stringResource(R.string.feedback),
+                supportingText = stringResource(R.string.feedback_desc),
+            )
+            SoloShelfSegmentedListItem(
+                onClick = onNavigateToEverythingElse,
+                shapes = ListItemDefaults.segmentedShapes(2, 3),
+                leadingContent = { Icon(painterResource(R.drawable.ic_info), contentDescription = null) },
+                headlineText = stringResource(R.string.everything_else),
+                supportingText = stringResource(R.string.everything_else_desc),
+            )
         }
     }
 }
 
 @Composable
-fun SettingsItem(
+fun SettingsSectionHeader(
     title: String,
-    description: String? = null,
-    onClick: (() -> Unit)? = null,
-    trailingContent: @Composable (() -> Unit)? = null,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            if (description != null) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        if (trailingContent != null) {
-            trailingContent()
-        }
-    }
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 8.dp, top = 24.dp, bottom = 8.dp),
+    )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @DevicePreviews
 @Composable
-fun SettingsPreview() {
+fun SettingsScreenPreview() {
     SoloShelfTheme {
-        SettingsContent(
+        SettingsScreenContent(
             themePreference = AppTheme.AUTO,
             dynamicColor = true,
             onBack = {},
+            onNavigateToAppearance = {},
+            onNavigateToLibraryStorage = {},
+            onNavigateToEverythingElse = {},
             onThemeChange = {},
             onDynamicColorChange = {},
         )

@@ -29,11 +29,12 @@
     <string name="sort_by">Sort by</string>
     <string name="sort_order_title">Title</string>
     <string name="sort_order_author">Author</string>
-    <string name="sort_order_date_added">Date added</string>
-    <string name="sort_order_last_read">Last Read</string>
+    <string name="sort_order_date_added">Date</string>
+    <string name="sort_order_last_read">Recent</string>
 
     <string name="library">Library</string>
     <string name="bookshelf">Bookshelf</string>
+    <string name="ebooks">Ebooks</string>
     <string name="audiobooks">Audiobooks</string>
     <string name="collections">Collections</string>
 
@@ -42,17 +43,57 @@
     <string name="audiobooks_screen_placeholder">Audiobooks screen</string>
 
     <!-- Settings Screen -->
+    <string name="settings_general">General</string>
+    <string name="settings_other">Other</string>
+
     <string name="appearance">Appearance</string>
+    <string name="appearance_desc">Colors, theme and font style</string>
     <string name="theme">Theme</string>
     <string name="theme_auto">Auto</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="theme_mode_material_you">Material You</string>
+    <string name="theme_mode_custom">Custom</string>
+    <string name="color_theme">Color theme</string>
+    <string name="color_mono">Mono</string>
+    <string name="color_cyan_teal">Cyan Teal</string>
+    <string name="color_terracotta">Terracotta</string>
+    <string name="color_iris">Iris</string>
+    <string name="color_oatmeal">Oatmeal</string>
+    <string name="color_crimson">Crimson</string>
+    <string name="color_mint">Mint</string>
+    <string name="color_amber">Amber</string>
+    <string name="color_plum">Plum</string>
+    <string name="color_custom">Custom</string>
+    <string name="seed_color">Seed color</string>
+
+    <string name="palette_style">Palette style</string>
+    <string name="palette_tonal_spot">Tonal Spot</string>
+    <string name="palette_tonal_spot_desc">Calm and balanced colors for everyday use</string>
+    <string name="palette_neutral">Neutral</string>
+    <string name="palette_neutral_desc">Minimal tints for a clean, understated look</string>
+    <string name="palette_vibrant">Vibrant</string>
+    <string name="palette_vibrant_desc">High-energy colors that stand out</string>
+    <string name="palette_expressive">Expressive</string>
+    <string name="palette_expressive_desc">A bold, multi-colored palette</string>
+    <string name="palette_monochrome">Monochrome</string>
+    <string name="palette_monochrome_desc">Pure shades of black, white, and gray</string>
+    <string name="dark_theme">Dark theme</string>
+    <string name="amoled_black">AMOLED black</string>
+    <string name="amoled_black_desc">Use a much darker palette in dark mode</string>
     <string name="dynamic_color">Dynamic Color</string>
     <string name="dynamic_color_desc">Enable dynamic colors</string>
 
     <string name="language">Language</string>
+    <string name="language_english">English</string>
     <string name="preferred_language">Preferred language</string>
     <string name="upcoming_feature">Upcoming feature</string>
+
+    <string name="library_storage">Library &amp; storage</string>
+    <string name="library_storage_desc">Manage folders, scan directories, clear cache</string>
+
+    <string name="everything_else">Everything else</string>
+    <string name="everything_else_desc">App info &amp; credits</string>
 
     <string name="support_feedback">Support &amp; Feedback</string>
     <string name="feedback">Feedback</string>
@@ -62,9 +103,17 @@
 
     <string name="about_soloshelf">About SoloShelf</string>
     <string name="privacy_policy">Privacy policy</string>
-    <string name="app_version">App Version</string>
-    <string name="developer_credits">Developer Credits</string>
-    <string name="developer_credits_desc">See the faces behind the app.</string>
+    <string name="manage_library_folders">Manage library folders</string>
+    <string name="manage_library_folders_desc">Choose where soloshelf scans for books</string>
+    <string name="auto_scan_on_startup">Auto-scan on startup</string>
+    <string name="auto_scan_on_startup_desc">Index new ebooks and audiobooks on startup</string>
+    <string name="clear_image_cache">Clear image cache</string>
+    <string name="clear_image_cache_desc">Purge thumbnails and temp files (%1$s)</string>
+    <string name="app_info">App info</string>
+    <string name="github">Github</string>
+    <string name="credits">Credits</string>
+    <string name="developer">Developer</string>
+    <string name="developer_handle">\@kimothorick</string>
     <string name="filter">Filter</string>
     <string name="settings">Settings</string>
 
@@ -86,12 +135,72 @@
     <string name="done_action">Done</string>
     <string name="collection_items_authors">%1$d items • %2$d authors</string>
     <string name="start_reading">Start reading</string>
+    <string name="continue_reading">Continue reading</string>
+    <string name="continue_reading_progress">Continue reading • %1$d%%</string>
     <string name="more">More</string>
     <string name="synopsis">Synopsis</string>
     <string name="no_synopsis_available">No synopsis available.</string>
     <string name="details">Details</string>
+    <string name="contents">Contents</string>
     <string name="pages">Pages</string>
+    <string name="duration">Duration</string>
     <string name="publication_date">Publication date</string>
     <string name="file_type">File type</string>
     <string name="genres">Genres</string>
+    <string name="file_details">File details</string>
+    <string name="location">LOCATION</string>
+    <string name="size">SIZE</string>
+    <string name="format">FORMAT</string>
+    <string name="imported">IMPORTED</string>
+    <string name="modified">MODIFIED</string>
+    <string name="publisher">PUBLISHER</string>
+    <string name="isbn">ISBN</string>
+    <string name="identifier">IDENTIFIER</string>
+    <string name="year">YEAR</string>
+
+    <string name="currently_reading">Currently Reading</string>
+    <string name="continue_listening">Continue listening</string>
+    <string name="all_books">All Books</string>
+    <string name="all_audiobooks">All Audiobooks</string>
+    <string name="by_author">by %1$s</string>
+    <string name="pages_left">%1$s pages left</string>
+    <string name="pages_count">%1$s pages</string>
+    <string name="pages_left_short">%1$d left</string>
+    <string name="pages_short">%1$d</string>
+    <string name="hours_left">%1$d h left</string>
+    <string name="minutes_left">%1$d m left</string>
+    <string name="hours_left_short">%1$d h left</string>
+    <string name="mins_left_short">%1$d m left</string>
+    <string name="hours_short">%1$d h</string>
+    <string name="hours_minutes_left">%1$d h %2$d m left</string>
+    <string name="hours_minutes">%1$d h %2$d m</string>
+    <string name="minutes">%1$d m</string>
+    <string name="time_left">%1$s left</string>
+    <string name="add_to_collection">Add to Collection</string>
+    <string name="delete">Delete</string>
+    <string name="no_collections_found">No collections found</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete_book">Delete Book</string>
+    <string name="delete_book_desc">Are you sure you want to delete \"%1$s\" from your library? \nThis action cannot be undone.</string>
+
+    <!-- Error strings -->
+    <string name="publication_error_invalid_publication">Invalid publication</string>
+    <string name="publication_error_unexpected">An unexpected error occurred</string>
+    <string name="publication_error_scheme_not_supported">Unsupported URL scheme</string>
+    <string name="publication_error_reading">Error reading publication</string>
+
+    <string name="import_error_missing_lcp_support">LCP support is missing</string>
+    <string name="import_error_unable_to_add_to_database">Unable to add publication to database</string>
+    <string name="import_error_download_failed">Download failed</string>
+    <string name="import_error_no_acquisition_link">No acquisition link found</string>
+    <string name="import_error_inconsistent_state">Inconsistent state</string>
+    <string name="import_error_already_exists">This book is already in your library</string>
+    <string name="book_details">Book details</string>
+    <string name="edit">Edit</string>
+    <string name="favorite">Favorite</string>
+    <string name="about">About</string>
+    <string name="no_contents_available">No contents available</string>
+
+    <!--Playback speed-->
+    <string name="playback_1x">1x</string>
 </resources>

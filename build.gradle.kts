@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.parcelize) apply false
     alias(libs.plugins.jetbrains.kotlin.serialization) apply false
     alias(libs.plugins.screenshot) apply false
+    alias(libs.plugins.stability.analyzer) apply false
 }
 
 apply(from = "buildscripts/git-hooks.gradle.kts")

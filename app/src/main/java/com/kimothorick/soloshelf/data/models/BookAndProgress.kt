@@ -10,4 +10,14 @@ data class BookAndProgress(
         entityColumn = "bookId",
     )
     val progress: ReadingProgress?,
+    @Relation(
+        parentColumn = "bookId",
+        entityColumn = "bookId",
+    )
+    val ebookDetails: EbookDetails?,
+    @Relation(
+        parentColumn = "bookId",
+        entityColumn = "bookId",
+    )
+    val audiobookDetails: AudiobookDetails?,
 )
