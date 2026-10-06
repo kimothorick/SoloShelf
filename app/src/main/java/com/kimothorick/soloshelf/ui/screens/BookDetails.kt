@@ -121,7 +121,6 @@ fun BookDetails(
     bookId: Long,
     onBack: () -> Unit,
     onNavigateToReader: (Long) -> Unit,
-    onNavigateToPlayer: (Long) -> Unit,
     viewModel: BookDetailsViewModel = hiltViewModel(),
 ) {
     val bookAndProgress by viewModel.bookAndProgress.collectAsStateWithLifecycle()
@@ -137,7 +136,6 @@ fun BookDetails(
             tableOfContents = tableOfContents,
             onBack = onBack,
             onNavigateToReader = onNavigateToReader,
-            onNavigateToPlayer = onNavigateToPlayer,
         )
     }
 }
@@ -149,7 +147,6 @@ private fun BookDetailsScreen(
     tableOfContents: List<Link>,
     onBack: () -> Unit,
     onNavigateToReader: (Long) -> Unit,
-    onNavigateToPlayer: (Long) -> Unit,
     modifier: Modifier = Modifier,
     fileSizeOverride: String? = null,
     modifiedDateOverride: String? = null,
@@ -200,7 +197,7 @@ private fun BookDetailsScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         val coverWidth = 220.dp
-                        val coverHeight = if (book.isAudiobook) 220.dp else 320.dp
+                        val coverHeight = 320.dp
                         AsyncImage(
                             model = remember(book.coverPath) {
                                 book.coverPath?.let { path ->
@@ -338,11 +335,7 @@ private fun BookDetailsScreen(
                     leadingButton = {
                         SplitButtonDefaults.TonalLeadingButton(
                             onClick = {
-                                if (book.isAudiobook) {
-                                    onNavigateToPlayer(book.bookId)
-                                } else {
-                                    onNavigateToReader(book.bookId)
-                                }
+                                onNavigateToReader(book.bookId)
                             },
                             modifier = Modifier.heightIn(size),
                             shapes = SplitButtonDefaults.leadingButtonShapesFor(size),
@@ -532,42 +525,21 @@ private fun MetadataGrid(
         extractYear(book.publicationDate)
     }
 
-    val pageCount = if (book.isAudiobook) {
-        (bookAndProgress.audiobookDetails?.totalDurationMs ?: 0) / 1000 / 60 // show minutes for audiobooks?
-    } else {
-        bookAndProgress.ebookDetails?.pageCount ?: 0
-    }
-
-    val pagesLabel = if (book.isAudiobook) stringResource(R.string.duration) else stringResource(R.string.pages)
-    val pagesValue = if (book.isAudiobook) {
-        val totalSeconds = (bookAndProgress.audiobookDetails?.totalDurationMs ?: 0) / 1000
-        val hours = totalSeconds / 3600
-        val minutes = (totalSeconds % 3600) / 60
-        if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
-    } else {
-        NumberUtils.formatLocalizedInteger(pageCount.toInt())
-    }
+    val pageCount = bookAndProgress.ebookDetails?.pageCount ?: 0
+    val pagesValue = NumberUtils.formatLocalizedInteger(pageCount)
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             MetadataGridItem(
-                label = pagesLabel,
+                label = stringResource(R.string.pages),
                 value = pagesValue,
                 modifier = Modifier.weight(1f),
             )
-            if (book.isAudiobook) {
-                MetadataGridItem(
-                    label = "Narrator",
-                    value = bookAndProgress.audiobookDetails?.narrator ?: stringResource(R.string.unknown),
-                    modifier = Modifier.weight(1f),
-                )
-            } else {
-                MetadataGridItem(
-                    label = stringResource(R.string.language),
-                    value = formatLanguage(book.language) ?: stringResource(R.string.unknown),
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            MetadataGridItem(
+                label = stringResource(R.string.language),
+                value = formatLanguage(book.language) ?: stringResource(R.string.unknown),
+                modifier = Modifier.weight(1f),
+            )
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             MetadataGridItem(
@@ -868,12 +840,10 @@ private fun BookDetailsPreview() {
                     book = PreviewData.sampleBook,
                     progress = null,
                     ebookDetails = null,
-                    audiobookDetails = null,
                 ),
                 tableOfContents = PreviewData.sampleToc,
                 onBack = {},
                 onNavigateToReader = {},
-                onNavigateToPlayer = {},
                 fileSizeOverride = "2.4 MB",
                 modifiedDateOverride = "Mar 10, 2024",
             )

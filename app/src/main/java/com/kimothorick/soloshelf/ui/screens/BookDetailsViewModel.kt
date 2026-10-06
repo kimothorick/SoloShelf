@@ -6,8 +6,6 @@ import androidx.media3.common.util.UnstableApi
 import com.kimothorick.soloshelf.data.BookRepository
 import com.kimothorick.soloshelf.data.models.Book
 import com.kimothorick.soloshelf.data.models.BookAndProgress
-import com.kimothorick.soloshelf.data.models.BookWithAudioDetails
-import com.kimothorick.soloshelf.data.models.Track
 import com.kimothorick.soloshelf.domain.BookMetadataExtractor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,7 +16,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import org.readium.r2.shared.publication.Href
 import org.readium.r2.shared.publication.Link
 import javax.inject.Inject
 
@@ -67,24 +64,12 @@ class BookDetailsViewModel @Inject constructor(
     val tableOfContents: StateFlow<List<Link>> = bookId
         .flatMapLatest { id ->
             if (id == null) flowOf(null)
-            else bookRepository.getBookWithAudioDetails(id)
+            else bookRepository.getBookById(id)
         }
-        .flatMapLatest { details ->
+        .flatMapLatest { book ->
             flow {
-                if (details != null) {
-                    if (details.book.isAudiobook) {
-                        val tracks = details.tracks.sortedBy { it.trackNumber }
-                        val links = tracks.mapIndexed { index, track ->
-                            Link(
-                                href = Href("chapter_${index + 1}")!!,
-                                title = track.title,
-                                duration = track.duration.toDouble(),
-                            )
-                        }
-                        emit(links)
-                    } else {
-                        emit(metadataExtractor.getTableOfContents(details.book))
-                    }
+                if (book != null) {
+                    emit(metadataExtractor.getTableOfContents(book))
                 } else {
                     emit(emptyList())
                 }

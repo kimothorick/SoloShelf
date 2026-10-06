@@ -71,17 +71,14 @@ import com.kimothorick.soloshelf.navigation.rememberNavigationState
 import com.kimothorick.soloshelf.navigation.toDecoratedEntries
 import com.kimothorick.soloshelf.ui.components.CreateCollectionDialog
 import com.kimothorick.soloshelf.ui.components.MainAppBar
-import com.kimothorick.soloshelf.ui.components.MiniPlayer
 import com.kimothorick.soloshelf.ui.components.SoloShelfFab
 import com.kimothorick.soloshelf.ui.components.SortBottomSheetContent
 import com.kimothorick.soloshelf.ui.main.MainUiEvent
 import com.kimothorick.soloshelf.ui.main.MainViewModel
 import com.kimothorick.soloshelf.ui.screens.Bookshelf
 import com.kimothorick.soloshelf.ui.screens.Library
-import com.kimothorick.soloshelf.ui.screens.player.PlayerViewModel
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
 import com.kimothorick.soloshelf.ui.tooling.DevicePreviews
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,9 +86,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 fun MainScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToBookDetails: (Long) -> Unit,
-    onNavigateToPlayer: (Long) -> Unit = {},
     viewModel: MainViewModel,
-    playerViewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val navigationState = rememberNavigationState(
         startRoute = Route.Library,
@@ -151,14 +146,6 @@ fun MainScreen(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
         uri?.let { viewModel.addBooks(listOf(it)) }
-    }
-
-    val audiobookPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenMultipleDocuments(),
-    ) { uris ->
-        if (uris.isNotEmpty()) {
-            viewModel.addBooks(uris)
-        }
     }
 
     val adaptiveInfo = currentWindowAdaptiveInfoV2()
@@ -238,19 +225,6 @@ fun MainScreen(
             },
             bottomBar = {
                 Column {
-                    val playerUiState by playerViewModel.uiState.collectAsState()
-                    if (playerUiState.bookId != null && playerUiState.bookTitle.isNotEmpty()) {
-                        MiniPlayer(
-                            uiState = playerUiState,
-                            onPlayPauseClick = { playerViewModel.togglePlayPause() },
-                            onClick = {
-                                playerUiState.bookId?.let { bookId ->
-                                    onNavigateToPlayer(bookId)
-                                }
-                            },
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                        )
-                    }
                     if (layoutType == NavigationSuiteType.NavigationBar) {
                         NavigationBar(
                             containerColor = SoloShelfTheme.colorScheme.surfaceContainerHigh,
@@ -277,7 +251,6 @@ fun MainScreen(
                 if (currentRoute != Route.Search) {
                     AnimatedVisibility(
                         visible = isFabVisible || isFabExpanded,
-                        // Combines fade and scale with a slow 800ms duration
                         enter = fadeIn(animationSpec = tween(durationMillis = 800)) + scaleIn(
                             animationSpec = tween(
                                 durationMillis = 400,
@@ -300,17 +273,7 @@ fun MainScreen(
                                     ),
                                 )
                             },
-                            onAddAudiobookFileClick = {
-                                audiobookPickerLauncher.launch(
-                                    arrayOf(
-                                        "audio/*",
-                                        "application/audiobook+zip",
-                                        "application/audiobook+json",
-                                        "application/x-lpf+zip",
-                                        "application/zip",
-                                    ),
-                                )
-                            },
+                            onAddFolderClick = {},
                             onCreateCollectionClick = { isCreateCollectionDialogVisible = true },
                         )
                     }
@@ -326,7 +289,6 @@ fun MainScreen(
                         entry<Route.Library> {
                             Library(
                                 onNavigateToBookDetails = onNavigateToBookDetails,
-                                onNavigateToPlayer = onNavigateToPlayer,
                                 modifier = Modifier,
                             )
                         }

@@ -33,7 +33,7 @@ fun SoloShelfFab(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     onAddEbookFileClick: () -> Unit,
-    onAddAudiobookFileClick: () -> Unit,
+    onAddFolderClick: () -> Unit,
     onCreateCollectionClick: () -> Unit,
 ) {
     LaunchedEffect(currentRoute) {
@@ -57,8 +57,8 @@ fun SoloShelfFab(
             ),
             FabMenuItem(
                 icon = Icons.Filled.Headphones,
-                label = "Add Audiobook",
-                onClick = onAddAudiobookFileClick,
+                label = "Add Folder",
+                onClick = onAddFolderClick,
             ),
         )
     }

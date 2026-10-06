@@ -68,7 +68,6 @@ object PreviewData {
             lastAccessed = System.currentTimeMillis()
         ),
         ebookDetails = null,
-        audiobookDetails = null,
     )
 
     val sampleBooksAndProgress = sampleBooks.mapIndexed { index, book ->
@@ -81,7 +80,6 @@ object PreviewData {
                 lastAccessed = System.currentTimeMillis()
             ),
             ebookDetails = null,
-            audiobookDetails = null,
         )
     }
 
@@ -99,18 +97,4 @@ object PreviewData {
             pageCount = 350,
         )
     }
-
-    val sampleLibraryAudiobook = LibraryItem.Audiobook(
-        id = 100L,
-        title = "Project Hail Mary",
-        author = "Andy Weir",
-        coverPath = null,
-        filePath = "",
-        mediaType = null,
-        lastReadLocatorJson = null,
-        lastAccessed = null,
-        progressPercentage = 0f,
-        totalDurationMs = 16 * 3600 * 1000L,
-        narrator = "Ray Porter",
-    )
 }

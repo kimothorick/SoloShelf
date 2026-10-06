@@ -18,7 +18,6 @@ import androidx.navigation3.ui.NavDisplay
 import com.kimothorick.soloshelf.ui.main.MainViewModel
 import com.kimothorick.soloshelf.ui.screens.BookDetails
 import com.kimothorick.soloshelf.ui.screens.main.MainScreen
-import com.kimothorick.soloshelf.ui.screens.player.PlayerScreen
 import com.kimothorick.soloshelf.ui.screens.reader.ReaderScreen
 import com.kimothorick.soloshelf.ui.screens.settings.AppearanceScreen
 import com.kimothorick.soloshelf.ui.screens.settings.EverythingElseScreen
@@ -30,7 +29,6 @@ import com.kimothorick.soloshelf.ui.screens.settings.rememberSettingsTwoPaneScen
 
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
-import com.kimothorick.soloshelf.ui.screens.player.PlayerViewModel
 
 data class MainDestination(
     val route: Route,
@@ -43,7 +41,6 @@ data class MainDestination(
 fun NavigationRoot(
     mainViewModel: MainViewModel,
     settingsViewModel: SettingsViewModel,
-    playerViewModel: PlayerViewModel,
     modifier: Modifier = Modifier,
 ) {
     val rootBackStack = rememberNavBackStack(Route.Library)
@@ -95,9 +92,6 @@ fun NavigationRoot(
                     onNavigateToReader = { bookId ->
                         rootBackStack.add(Route.Reader(bookId))
                     },
-                    onNavigateToPlayer = { bookId ->
-                        rootBackStack.add(Route.Player(bookId))
-                    },
                     viewModel = hiltViewModel(key = key.bookId.toString()),
                 )
             }
@@ -121,25 +115,13 @@ fun NavigationRoot(
                 )
             }
 
-            entry<Route.Player> { key ->
-                PlayerScreen(
-                    bookId = key.bookId,
-                    onBack = { rootBackStack.removeLastOrNull() },
-                    viewModel = playerViewModel,
-                )
-            }
-
             entry<Route.Library> {
                 MainScreen(
                     onNavigateToSettings = { rootBackStack.add(Route.Settings) },
                     onNavigateToBookDetails = { bookId ->
                         rootBackStack.add(Route.BookDetails(bookId))
                     },
-                    onNavigateToPlayer = { bookId ->
-                        rootBackStack.add(Route.Player(bookId))
-                    },
                     viewModel = mainViewModel,
-                    playerViewModel = playerViewModel,
                 )
             }
 
@@ -149,11 +131,7 @@ fun NavigationRoot(
                     onNavigateToBookDetails = { bookId ->
                         rootBackStack.add(Route.BookDetails(bookId))
                     },
-                    onNavigateToPlayer = { bookId ->
-                        rootBackStack.add(Route.Player(bookId))
-                    },
                     viewModel = mainViewModel,
-                    playerViewModel = playerViewModel,
                 )
             }
 
@@ -163,11 +141,7 @@ fun NavigationRoot(
                     onNavigateToBookDetails = { bookId ->
                         rootBackStack.add(Route.BookDetails(bookId))
                     },
-                    onNavigateToPlayer = { bookId ->
-                        rootBackStack.add(Route.Player(bookId))
-                    },
                     viewModel = mainViewModel,
-                    playerViewModel = playerViewModel,
                 )
             }
         }

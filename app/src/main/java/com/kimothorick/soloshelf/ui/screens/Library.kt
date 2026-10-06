@@ -12,18 +12,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,27 +49,18 @@ import kotlinx.coroutines.flow.flowOf
 @Composable
 fun Library(
     onNavigateToBookDetails: (Long) -> Unit,
-    onNavigateToPlayer: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val ebooks = viewModel.ebooks.collectAsLazyPagingItems()
-    val audiobooks = viewModel.audiobooks.collectAsLazyPagingItems()
     val recentEbooks = viewModel.recentEbooks.collectAsLazyPagingItems()
-    val recentAudiobooks = viewModel.recentAudiobooks.collectAsLazyPagingItems()
     val collections by viewModel.collections.collectAsState()
-    val selectedTab by viewModel.selectedTab.collectAsState()
 
     LibraryContent(
         ebooks = ebooks,
-        audiobooks = audiobooks,
         recentEbooks = recentEbooks.itemSnapshotList.items.toImmutableList(),
-        recentAudiobooks = recentAudiobooks.itemSnapshotList.items.toImmutableList(),
         collections = collections.toImmutableList(),
-        selectedTab = selectedTab,
         onNavigateToBookDetails = onNavigateToBookDetails,
-        onNavigateToPlayer = onNavigateToPlayer,
-        onSelectTab = viewModel::selectTab,
         onDeleteBook = viewModel::deleteBook,
         onAddBookToCollection = viewModel::addBookToCollection,
         modifier = modifier,
@@ -87,35 +70,13 @@ fun Library(
 @Composable
 fun LibraryContent(
     ebooks: LazyPagingItems<LibraryItem.Ebook>,
-    audiobooks: LazyPagingItems<LibraryItem.Audiobook>,
     recentEbooks: ImmutableList<LibraryItem.Ebook>,
-    recentAudiobooks: ImmutableList<LibraryItem.Audiobook>,
     collections: ImmutableList<CollectionWithBooks>,
-    selectedTab: LibraryTab,
     onNavigateToBookDetails: (Long) -> Unit,
-    onNavigateToPlayer: (Long) -> Unit,
-    onSelectTab: (LibraryTab) -> Unit,
     onDeleteBook: (Long) -> Unit,
     onAddBookToCollection: (Long, Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val pagerState = rememberPagerState(
-        initialPage = selectedTab.ordinal,
-        pageCount = { LibraryTab.entries.size },
-    )
-
-    // Sync selectedTab from ViewModel to pagerState
-    LaunchedEffect(selectedTab) {
-        if (pagerState.currentPage != selectedTab.ordinal) {
-            pagerState.animateScrollToPage(selectedTab.ordinal)
-        }
-    }
-
-    // Sync pagerState to ViewModel
-    LaunchedEffect(pagerState.currentPage) {
-        onSelectTab(LibraryTab.entries[pagerState.currentPage])
-    }
-
     var bookIdToDelete by remember { mutableStateOf<Long?>(null) }
     var bookTitleToDelete by remember { mutableStateOf("") }
 
@@ -131,84 +92,32 @@ fun LibraryContent(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        PrimaryScrollableTabRow(
-            selectedTabIndex = pagerState.currentPage,
-            containerColor = SoloShelfTheme.colorScheme.surfaceContainer,
-            indicator = {
-                TabRowDefaults.PrimaryIndicator(
-                    modifier = Modifier.tabIndicatorOffset(pagerState.currentPage),
-                    width = 40.dp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    shape = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp),
-                )
+        LibraryGrid(
+            recentBooks = recentEbooks,
+            allBooks = ebooks,
+            collections = collections,
+            onItemClick = onNavigateToBookDetails,
+            onDeleteBook = { id, title -> 
+                bookIdToDelete = id
+                bookTitleToDelete = title
             },
-            divider = {
-                HorizontalDivider(
-                    color = SoloShelfTheme.colorScheme.outlineVariant,
-                )
-            },
-            edgePadding = 0.dp,
-        ) {
-            LibraryTab.entries.forEach { tab ->
-                Tab(
-                    selected = pagerState.currentPage == tab.ordinal,
-                    onClick = { onSelectTab(tab) },
-                    text = {
-                        Text(
-                            text = when (tab) {
-                                LibraryTab.Ebooks -> stringResource(R.string.ebooks)
-                                LibraryTab.Audiobooks -> stringResource(R.string.audiobooks)
-                            },
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = if (pagerState.currentPage == tab.ordinal) FontWeight.Bold else FontWeight.Medium,
-                            color = if (pagerState.currentPage == tab.ordinal) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    },
-                )
-            }
-        }
-
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize(),
-            beyondViewportPageCount = 1,
-        ) { page ->
-            val tab = LibraryTab.entries[page]
-            LibraryGrid(
-                tab = tab,
-                recentBooks = if (tab == LibraryTab.Ebooks) recentEbooks else recentAudiobooks,
-                allBooks = if (tab == LibraryTab.Ebooks) ebooks else audiobooks,
-                collections = collections,
-                onItemClick = if (tab == LibraryTab.Ebooks) onNavigateToBookDetails else onNavigateToPlayer,
-                onNavigateToBookDetails = onNavigateToBookDetails,
-                onDeleteBook = { id, title -> 
-                    bookIdToDelete = id
-                    bookTitleToDelete = title
-                },
-                onAddBookToCollection = onAddBookToCollection,
-            )
-        }
+            onAddBookToCollection = onAddBookToCollection,
+        )
     }
 }
 
 @Composable
 fun LibraryGrid(
-    tab: LibraryTab,
     recentBooks: ImmutableList<LibraryItem>,
     allBooks: LazyPagingItems<out LibraryItem>,
     collections: ImmutableList<CollectionWithBooks>,
     onItemClick: (Long) -> Unit,
-    onNavigateToBookDetails: (Long) -> Unit,
     onDeleteBook: (Long, String) -> Unit,
     onAddBookToCollection: (Long, Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isAtLeastMedium = isAtLeastMedium()
-    val minItemWidth = if (tab == LibraryTab.Audiobooks) {
-        if (!isAtLeastMedium) Constants.AUDIOBOOK_ITEM_WIDTH_COMPACT else Constants.AUDIOBOOK_ITEM_WIDTH_MEDIUM
-    } else {
-        if (!isAtLeastMedium) Constants.EBOOK_ITEM_WIDTH_COMPACT else Constants.EBOOK_ITEM_WIDTH_MEDIUM
-    }
+    val minItemWidth = if (!isAtLeastMedium) Constants.EBOOK_ITEM_WIDTH_COMPACT else Constants.EBOOK_ITEM_WIDTH_MEDIUM
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = minItemWidth),
@@ -228,29 +137,18 @@ fun LibraryGrid(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 SectionTitle(
-                    stringResource(
-                        when (tab) {
-                            LibraryTab.Ebooks -> R.string.currently_reading
-                            LibraryTab.Audiobooks -> R.string.continue_listening
-                        },
-                    ),
+                    stringResource(R.string.currently_reading),
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
                 RecentBooksRow(
                     books = recentBooks,
                     onBookClick = onItemClick,
-                    onViewDetails = onNavigateToBookDetails,
                     onDeleteBook = onDeleteBook,
                     collections = collections,
                     onAddBookToCollection = onAddBookToCollection,
                 )
                 SectionTitle(
-                    stringResource(
-                        when (tab) {
-                            LibraryTab.Ebooks -> R.string.all_books
-                            LibraryTab.Audiobooks -> R.string.all_audiobooks
-                        },
-                    ),
+                    stringResource(R.string.all_books),
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
@@ -264,9 +162,8 @@ fun LibraryGrid(
                 BookItem(
                     modifier = Modifier.fillMaxWidth(),
                     libraryItem = libraryItem,
-                    showProgress = true,
+                    showProgress = false,
                     onClick = { onItemClick(libraryItem.id) },
-                    onViewDetails = { onNavigateToBookDetails(libraryItem.id) },
                     onDelete = { onDeleteBook(libraryItem.id, libraryItem.title) },
                     collections = collections.map { it.collection },
                     onAddToCollection = { collectionId ->
@@ -312,7 +209,6 @@ fun SectionTitle(
 private fun RecentBooksRow(
     books: List<LibraryItem>,
     onBookClick: (Long) -> Unit,
-    onViewDetails: (Long) -> Unit,
     onDeleteBook: (Long, String) -> Unit,
     collections: List<CollectionWithBooks>,
     onAddBookToCollection: (Long, Long) -> Unit,
@@ -328,17 +224,11 @@ private fun RecentBooksRow(
             items = books,
             key = { it.id },
         ) { libraryItem ->
-            val isAudiobooks = libraryItem is LibraryItem.Audiobook
-            val width = if (isAudiobooks) {
-                if (isAtLeastMedium) Constants.AUDIOBOOK_ITEM_WIDTH_MEDIUM else Constants.AUDIOBOOK_ITEM_WIDTH_COMPACT
-            } else {
-                if (isAtLeastMedium) Constants.EBOOK_ITEM_WIDTH_MEDIUM else Constants.EBOOK_ITEM_WIDTH_COMPACT
-            }
+            val width = if (isAtLeastMedium) Constants.EBOOK_ITEM_WIDTH_MEDIUM else Constants.EBOOK_ITEM_WIDTH_COMPACT
             BookItem(
                 modifier = Modifier.width(width),
                 libraryItem = libraryItem,
                 onClick = { onBookClick(libraryItem.id) },
-                onViewDetails = { onViewDetails(libraryItem.id) },
                 onDelete = { onDeleteBook(libraryItem.id, libraryItem.title) },
                 collections = collections.map { it.collection },
                 onAddToCollection = { collectionId ->
@@ -353,20 +243,14 @@ private fun RecentBooksRow(
 @Composable
 fun LibraryPreview() {
     val ebooks = flowOf(PagingData.from(PreviewData.sampleLibraryEbooks)).collectAsLazyPagingItems()
-    val audiobooks = flowOf(PagingData.empty<LibraryItem.Audiobook>()).collectAsLazyPagingItems()
 
     SoloShelfTheme {
         Surface(color = SoloShelfTheme.colorScheme.surfaceContainer) {
             LibraryContent(
                 ebooks = ebooks,
-                audiobooks = audiobooks,
                 recentEbooks = PreviewData.sampleLibraryEbooks.take(2).toImmutableList(),
-                recentAudiobooks = emptyList<LibraryItem.Audiobook>().toImmutableList(),
                 collections = PreviewData.sampleCollections.toImmutableList(),
-                selectedTab = LibraryTab.Ebooks,
                 onNavigateToBookDetails = {},
-                onNavigateToPlayer = {},
-                onSelectTab = {},
                 onDeleteBook = { _ -> },
                 onAddBookToCollection = { _, _ -> },
             )

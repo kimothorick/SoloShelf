@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.commit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -40,7 +39,6 @@ import com.kimothorick.soloshelf.ui.onboarding.OnboardingScreen
 import com.kimothorick.soloshelf.ui.onboarding.OnboardingUiState
 import com.kimothorick.soloshelf.ui.onboarding.OnboardingViewModel
 import com.kimothorick.soloshelf.ui.onboarding.PermissionState
-import com.kimothorick.soloshelf.ui.screens.player.PlayerViewModel
 import com.kimothorick.soloshelf.ui.screens.settings.SettingsViewModel
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,7 +49,6 @@ class MainActivity : FragmentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
     private val onboardingViewModel: OnboardingViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
-    private val playerViewModel: PlayerViewModel by viewModels()
 
     override fun onCreate(
         savedInstanceState: Bundle?,
@@ -134,10 +131,6 @@ class MainActivity : FragmentActivity() {
                 }
             }
 
-            // Example: To pass a color extracted from an image, use the 'seedColor' parameter:
-            // val dynamicSeed = remember { mutableStateOf(Color.Blue) }
-            // SoloShelfTheme(seedColor = dynamicSeed.value, ...)
-
             SoloShelfTheme(
                 darkTheme = darkTheme,
                 amoledBlack = amoledBlack,
@@ -197,7 +190,6 @@ class MainActivity : FragmentActivity() {
                             NavigationRoot(
                                 mainViewModel = mainViewModel,
                                 settingsViewModel = settingsViewModel,
-                                playerViewModel = playerViewModel,
                             )
                         }
                     }
@@ -219,12 +211,12 @@ class MainActivity : FragmentActivity() {
                 intent.data = uri
                 startActivity(intent)
             }
-
             else -> {
-                if (isMinTiramisu && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                    return
+                if (isMinTiramisu) {
+                    launcher.launch(permission)
+                } else {
+                    launcher.launch(permission)
                 }
-                launcher.launch(permission)
             }
         }
     }

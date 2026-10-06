@@ -30,5 +30,4 @@ data class Book(
     val seriesPosition: Float? = null,
     val publisher: String? = null,
     val isbn: String? = null,
-    val isAudiobook: Boolean = false,
 )

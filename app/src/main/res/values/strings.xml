@@ -164,6 +164,7 @@
     <string name="all_audiobooks">All Audiobooks</string>
     <string name="by_author">by %1$s</string>
     <string name="pages_left">%1$s pages left</string>
+    <string name="finished">Finished</string>
     <string name="pages_count">%1$s pages</string>
     <string name="pages_left_short">%1$d left</string>
     <string name="pages_short">%1$d</string>

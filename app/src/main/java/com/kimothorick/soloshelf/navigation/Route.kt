@@ -50,11 +50,4 @@ sealed interface Route :
         val bookId: Long,
     ) : Route,
         NavKey
-
-    @Serializable
-    @Parcelize
-    data class Player(
-        val bookId: Long,
-    ) : Route,
-        NavKey
 }

@@ -25,18 +25,4 @@ sealed interface LibraryItem {
         override val progressPercentage: Float,
         val pageCount: Int
     ) : LibraryItem
-
-    data class Audiobook(
-        override val id: Long,
-        override val title: String,
-        override val author: String,
-        override val coverPath: String?,
-        override val filePath: String,
-        override val mediaType: MediaType?,
-        override val lastReadLocatorJson: String?,
-        override val lastAccessed: Long?,
-        override val progressPercentage: Float,
-        val totalDurationMs: Long,
-        val narrator: String? = null
-    ) : LibraryItem
 }
