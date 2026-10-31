@@ -306,7 +306,7 @@ private fun AppVersionFooter(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "v1.0.0",
+            text = "v${com.kimothorick.soloshelf.BuildConfig.VERSION_NAME}",
             style = SoloShelfTheme.typography.bodyMedium,
             color = SoloShelfTheme.colorScheme.onSurfaceVariant,
         )
