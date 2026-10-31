@@ -14,59 +14,6 @@ class OnboardingScreenshotTest {
         SoloShelfTheme {
             OnboardingScreen(
                 onOnboardingFinished = {},
-                onGrantNotificationPermissionClicked = {},
-                notificationPermissionState = PermissionState.IDLE,
-                onGrantAudioPermissionClicked = {},
-                audioPermissionState = PermissionState.IDLE,
-                initialPage = 0,
-            )
-        }
-    }
-
-    @PreviewTest
-    @Preview(showSystemUi = true)
-    @Composable
-    fun NotificationPermissionScreen_Idle() {
-        SoloShelfTheme {
-            OnboardingScreen(
-                onOnboardingFinished = {},
-                onGrantNotificationPermissionClicked = {},
-                notificationPermissionState = PermissionState.IDLE,
-                onGrantAudioPermissionClicked = {},
-                audioPermissionState = PermissionState.IDLE,
-                initialPage = 1,
-            )
-        }
-    }
-
-    @PreviewTest
-    @Preview(showSystemUi = true)
-    @Composable
-    fun NotificationPermissionScreen_Granted() {
-        SoloShelfTheme {
-            OnboardingScreen(
-                onOnboardingFinished = {},
-                onGrantNotificationPermissionClicked = {},
-                notificationPermissionState = PermissionState.GRANTED,
-                onGrantAudioPermissionClicked = {},
-                audioPermissionState = PermissionState.IDLE,
-                initialPage = 1,
-            )
-        }
-    }
-
-    @PreviewTest
-    @Preview(showSystemUi = true)
-    @Composable
-    fun AudioPermissionScreen_Idle() {
-        SoloShelfTheme {
-            OnboardingScreen(
-                onOnboardingFinished = {},
-                onGrantNotificationPermissionClicked = {},
-                notificationPermissionState = PermissionState.IDLE,
-                onGrantAudioPermissionClicked = {},
-                audioPermissionState = PermissionState.IDLE,
-                initialPage = 2,
             )
         }
     }

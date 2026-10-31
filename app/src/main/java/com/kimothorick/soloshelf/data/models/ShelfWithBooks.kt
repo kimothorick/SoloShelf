@@ -4,12 +4,12 @@ import androidx.room.Embedded
 import androidx.room.Junction
 import androidx.room.Relation
 
-data class CollectionWithBooks(
-    @Embedded val collection: Collection,
+data class ShelfWithBooks(
+    @Embedded val shelf: Shelf,
     @Relation(
-        parentColumn = "collectionId",
+        parentColumn = "shelfId",
         entityColumn = "bookId",
-        associateBy = Junction(CollectionBookCrossRef::class)
+        associateBy = Junction(ShelfBookCrossRef::class)
     )
     val books: List<Book>
 )

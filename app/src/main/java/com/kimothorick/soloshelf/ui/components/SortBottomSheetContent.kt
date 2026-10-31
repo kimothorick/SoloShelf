@@ -49,14 +49,10 @@ fun SortBottomSheetContent(
 
     var isAscending by remember(currentSortOrder) {
         mutableStateOf(
-            currentSortOrder == SortOrder.TITLE_ASC ||
-                currentSortOrder == SortOrder.AUTHOR_ASC ||
-                currentSortOrder == SortOrder.DATE_ADDED_ASC ||
-                currentSortOrder == SortOrder.LAST_READ_ASC,
+            currentSortOrder == SortOrder.TITLE_ASC || currentSortOrder == SortOrder.AUTHOR_ASC || currentSortOrder == SortOrder.DATE_ADDED_ASC || currentSortOrder == SortOrder.LAST_READ_ASC,
         )
     }
 
-    // Update sort order in real-time
     LaunchedEffect(selectedBaseSort, isAscending) {
         val newSortOrder = when (selectedBaseSort) {
             "TITLE" -> if (isAscending) SortOrder.TITLE_ASC else SortOrder.TITLE_DESC
@@ -73,7 +69,9 @@ fun SortBottomSheetContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .background(
+                color = SoloShelfTheme.colorScheme.surfaceContainerLowest,
+            ).padding(horizontal = 24.dp)
             .padding(bottom = 32.dp),
     ) {
         Text(
@@ -87,7 +85,11 @@ fun SortBottomSheetContent(
             ToggleableButtonItem(stringResource(R.string.sort_order_title), selectedBaseSort == "TITLE", "TITLE"),
             ToggleableButtonItem(stringResource(R.string.sort_order_date_added), selectedBaseSort == "DATE", "DATE"),
             ToggleableButtonItem(stringResource(R.string.sort_order_author), selectedBaseSort == "AUTHOR", "AUTHOR"),
-            ToggleableButtonItem(stringResource(R.string.sort_order_last_read), selectedBaseSort == "LAST_READ", "LAST_READ"),
+            ToggleableButtonItem(
+                stringResource(R.string.sort_order_last_read),
+                selectedBaseSort == "LAST_READ",
+                "LAST_READ",
+            ),
         )
 
         ToggleableButtonGroup(
@@ -125,20 +127,14 @@ private fun SortBottomSheetPreview() {
     SoloShelfTheme {
         Surface {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface),
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // Drag handle simulation
                 Spacer(
-                    Modifier
-                        .padding(vertical = 12.dp)
-                        .size(width = 32.dp, height = 4.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            shape = CircleShape,
-                        ),
+                    Modifier.padding(vertical = 12.dp).size(width = 32.dp, height = 4.dp).background(
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        shape = CircleShape,
+                    ),
                 )
                 SortBottomSheetContent(
                     currentSortOrder = SortOrder.LAST_READ_DESC,

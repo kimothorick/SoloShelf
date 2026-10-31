@@ -8,8 +8,8 @@ import androidx.room.TypeConverters
 import com.kimothorick.soloshelf.data.daos.BookDao
 import com.kimothorick.soloshelf.data.models.Book
 import com.kimothorick.soloshelf.data.models.Bookmark
-import com.kimothorick.soloshelf.data.models.Collection
-import com.kimothorick.soloshelf.data.models.CollectionBookCrossRef
+import com.kimothorick.soloshelf.data.models.Shelf
+import com.kimothorick.soloshelf.data.models.ShelfBookCrossRef
 import com.kimothorick.soloshelf.data.models.Highlight
 import com.kimothorick.soloshelf.data.models.Note
 import com.kimothorick.soloshelf.data.models.ReadingProgress
@@ -22,11 +22,11 @@ import com.kimothorick.soloshelf.data.models.EbookDetails
         Bookmark::class,
         Highlight::class,
         Note::class,
-        Collection::class,
-        CollectionBookCrossRef::class,
+        Shelf::class,
+        ShelfBookCrossRef::class,
         EbookDetails::class,
     ],
-    version = 17,
+    version = 18,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

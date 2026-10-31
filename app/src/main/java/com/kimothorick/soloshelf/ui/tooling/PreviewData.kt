@@ -2,8 +2,8 @@ package com.kimothorick.soloshelf.ui.tooling
 
 import com.kimothorick.soloshelf.data.models.Book
 import com.kimothorick.soloshelf.data.models.BookAndProgress
-import com.kimothorick.soloshelf.data.models.Collection
-import com.kimothorick.soloshelf.data.models.CollectionWithBooks
+import com.kimothorick.soloshelf.data.models.Shelf
+import com.kimothorick.soloshelf.data.models.ShelfWithBooks
 import com.kimothorick.soloshelf.data.models.ReadingProgress
 import com.kimothorick.soloshelf.domain.models.LibraryItem
 import org.readium.r2.shared.publication.Link
@@ -50,13 +50,13 @@ object PreviewData {
         Book(title = "The Return of the King", author = "J.R.R Tolkien", format = "EPUB", filePath = ""),
     )
 
-    val sampleCollections = listOf(
-        CollectionWithBooks(Collection(name = "Fantasy"), sampleBooks),
-        CollectionWithBooks(Collection(name = "Sci-Fi"), sampleBooks.take(2)),
-        CollectionWithBooks(Collection(name = "Classics"), sampleBooks.take(1)),
-        CollectionWithBooks(Collection(name = "To Read"), emptyList()),
-        CollectionWithBooks(Collection(name = "Completed"), sampleBooks),
-        CollectionWithBooks(Collection(name = "Favorites"), sampleBooks),
+    val sampleShelves = listOf(
+        ShelfWithBooks(Shelf(name = "Fantasy"), sampleBooks),
+        ShelfWithBooks(Shelf(name = "Sci-Fi"), sampleBooks.take(2)),
+        ShelfWithBooks(Shelf(name = "Classics"), sampleBooks.take(1)),
+        ShelfWithBooks(Shelf(name = "To Read"), emptyList()),
+        ShelfWithBooks(Shelf(name = "Completed"), sampleBooks),
+        ShelfWithBooks(Shelf(name = "Favorites"), sampleBooks),
     )
 
     val sampleBookAndProgress = BookAndProgress(

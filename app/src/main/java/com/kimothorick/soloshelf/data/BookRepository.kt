@@ -13,15 +13,17 @@ import com.kimothorick.soloshelf.data.models.BookWithEbookDetails
 import com.kimothorick.soloshelf.data.models.BookWithHighlights
 import com.kimothorick.soloshelf.data.models.BookWithNotes
 import com.kimothorick.soloshelf.data.models.Bookmark
-import com.kimothorick.soloshelf.data.models.Collection
-import com.kimothorick.soloshelf.data.models.CollectionBookCrossRef
-import com.kimothorick.soloshelf.data.models.CollectionWithBooks
+import com.kimothorick.soloshelf.data.models.Shelf
+import com.kimothorick.soloshelf.data.models.ShelfBookCrossRef
+import com.kimothorick.soloshelf.data.models.ShelfWithBooks
 import com.kimothorick.soloshelf.data.models.EbookDetails
 import com.kimothorick.soloshelf.data.models.Highlight
 import com.kimothorick.soloshelf.data.models.Note
 import com.kimothorick.soloshelf.data.models.ReadingProgress
 import com.kimothorick.soloshelf.data.preferences.SortOrder
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import org.json.JSONObject
 import java.io.File
 
 class BookRepository(
@@ -53,11 +55,7 @@ class BookRepository(
             SortOrder.LAST_READ_DESC -> "dateAdded DESC"
         }
 
-    fun getRecentEbooks(): Flow<PagingData<BookWithEbookDetails>> =
-        Pager(
-            config = PagingConfig(pageSize = 10, enablePlaceholders = false),
-            pagingSourceFactory = { bookDao.getRecentEbooks() },
-        ).flow
+    fun getRecentEbooks(): Flow<List<BookWithEbookDetails>> = bookDao.getRecentEbooks()
 
     fun getBookWithBookmarks(
         id: Long,
@@ -74,6 +72,8 @@ class BookRepository(
     suspend fun getBookByFilePath(
         filePath: String,
     ): Book? = bookDao.getBookByFilePath(filePath)
+
+    suspend fun getAllBooksOnce(): List<Book> = bookDao.getAllBooks()
 
     fun getBookById(
         id: Long,
@@ -145,22 +145,99 @@ class BookRepository(
         bookDao.deleteBook(book)
     }
 
-    // Collections
-    fun getCollectionsWithBooks(): Flow<List<CollectionWithBooks>> = bookDao.getCollectionsWithBooks()
+    fun getShelvesWithBooks(): Flow<List<ShelfWithBooks>> = bookDao.getShelvesWithBooks()
 
-    suspend fun insertCollection(
-        collection: Collection,
-    ): Long = bookDao.insertCollection(collection)
+    suspend fun insertShelf(
+        shelf: Shelf,
+    ): Long = bookDao.insertShelf(shelf)
 
-    suspend fun insertCollectionBookCrossRef(
-        crossRef: CollectionBookCrossRef,
+    suspend fun insertShelfBookCrossRef(
+        crossRef: ShelfBookCrossRef,
     ) {
-        bookDao.insertCollectionBookCrossRef(crossRef)
+        bookDao.insertShelfBookCrossRef(crossRef)
     }
 
-    suspend fun deleteCollection(
-        collection: Collection,
+    suspend fun deleteShelfBookCrossRef(
+        crossRef: ShelfBookCrossRef,
     ) {
-        bookDao.deleteCollection(collection)
+        bookDao.deleteShelfBookCrossRef(crossRef)
+    }
+
+    suspend fun deleteShelf(
+        shelf: Shelf,
+    ) {
+        bookDao.deleteShelf(shelf)
+    }
+
+    suspend fun getShelvesWithBooksOnce(): List<ShelfWithBooks> {
+        return bookDao.getShelvesWithBooks().first()
+    }
+
+    suspend fun toggleFavorite(bookId: Long) {
+        addOrToggleBookToShelfByName(bookId, "Favorites")
+    }
+
+    suspend fun resetProgress(bookId: Long) {
+        updateBookProgress(bookId, 0f)
+    }
+
+    suspend fun markFinished(bookId: Long) {
+        updateBookProgress(bookId, 100f)
+        addBookToShelfByName(bookId, "Finished")
+    }
+
+    suspend fun addOrToggleBookToShelfByName(bookId: Long, shelfName: String) {
+        val shelves = getShelvesWithBooksOnce()
+        val targetShelf = shelves.find { it.shelf.name.equals(shelfName, ignoreCase = true) }
+        val shelfId = if (targetShelf != null) {
+            targetShelf.shelf.shelfId
+        } else {
+            bookDao.insertShelf(Shelf(name = shelfName))
+        }
+
+        val isBookInShelf = targetShelf?.books?.any { it.bookId == bookId } == true
+        if (isBookInShelf) {
+            bookDao.deleteShelfBookCrossRef(ShelfBookCrossRef(shelfId = shelfId, bookId = bookId))
+        } else {
+            bookDao.insertShelfBookCrossRef(ShelfBookCrossRef(shelfId = shelfId, bookId = bookId))
+        }
+    }
+
+    suspend fun addBookToShelfByName(bookId: Long, shelfName: String) {
+        val shelves = getShelvesWithBooksOnce()
+        val targetShelf = shelves.find { it.shelf.name.equals(shelfName, ignoreCase = true) }
+        val shelfId = if (targetShelf != null) {
+            targetShelf.shelf.shelfId
+        } else {
+            bookDao.insertShelf(Shelf(name = shelfName))
+        }
+
+        val isBookInShelf = targetShelf?.books?.any { it.bookId == bookId } == true
+        if (!isBookInShelf) {
+            bookDao.insertShelfBookCrossRef(ShelfBookCrossRef(shelfId = shelfId, bookId = bookId))
+        }
+    }
+
+    suspend fun updateBookProgress(bookId: Long, percentage: Float) {
+        val existing = bookDao.getBookAndProgressByIdOnce(bookId)
+        val rawLastPosition = existing?.progress?.lastPosition ?: "{}"
+        val lastPosition = try {
+            val json = JSONObject(rawLastPosition)
+            val locations = json.optJSONObject("locations") ?: JSONObject().also { json.put("locations", it) }
+            val targetProgression = (percentage / 100f).coerceIn(0f, 1f)
+            locations.put("totalProgression", targetProgression.toDouble())
+            locations.put("progression", targetProgression.toDouble())
+            json.toString()
+        } catch (e: Exception) {
+            "{}"
+        }
+
+        val progress = ReadingProgress(
+            bookId = bookId,
+            lastPosition = lastPosition,
+            readPercentage = percentage,
+            lastAccessed = System.currentTimeMillis()
+        )
+        bookDao.insertReadingProgress(progress)
     }
 }

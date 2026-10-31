@@ -23,6 +23,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -65,7 +66,7 @@ fun CircularIconButton(
         modifier = modifier.requiredSize(40.dp),
         enabled = enabled,
         colors = IconButtonDefaults.outlinedIconButtonColors(
-            containerColor = backgroundColor ?: SoloShelfTheme.colorScheme.surfaceVariant,
+            containerColor = backgroundColor ?: SoloShelfTheme.colorScheme.surfaceContainerHighest,
             contentColor = contentColor ?: SoloShelfTheme.colorScheme.onSurface,
         ),
         border = if (borderColor) {
@@ -133,7 +134,8 @@ fun ToggleableButtonGroup(
                 width = 1.dp,
                 color = outlineColor,
                 shape = containerShape,
-            ).height(52.dp)
+            )
+            .height(52.dp)
             .padding(all = 4.dp)
             .drawBehind {
                 val itemCount = items.size
@@ -160,7 +162,9 @@ fun ToggleableButtonGroup(
 
             if (index > 0 && !isSelected && !isPreviousSelected) {
                 VerticalDivider(
-                    modifier = Modifier.padding(vertical = 12.dp).height(24.dp),
+                    modifier = Modifier
+                        .padding(vertical = 12.dp)
+                        .height(24.dp),
                     color = MaterialTheme.colorScheme.outlineVariant,
                 )
             }
@@ -168,18 +172,21 @@ fun ToggleableButtonGroup(
             ToggleButton(
                 checked = isSelected,
                 onCheckedChange = { onItemSelected(item) },
-                modifier = Modifier.weight(1f).fillMaxHeight().semantics { role = Role.RadioButton },
-                shapes = ToggleButtonDefaults.shapes(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .semantics { role = Role.RadioButton },
+                shapes = ToggleButtonShapes(
                     shape = containerShape,
                     pressedShape = containerShape,
                     checkedShape = containerShape,
                 ),
                 border = null,
-                colors = ToggleButtonDefaults.toggleButtonColors(
+                colors = ToggleButtonDefaults.colors(
                     containerColor = Color.Transparent,
                     checkedContainerColor = Color.Transparent,
-                    checkedContentColor = MaterialTheme.colorScheme.onPrimary,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    checkedContentColor = SoloShelfTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = SoloShelfTheme.colorScheme.onSurface,
                 ),
             ) {
                 Row(

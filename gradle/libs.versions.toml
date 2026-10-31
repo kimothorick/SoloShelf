@@ -1,52 +1,47 @@
 [versions]
-agp = "9.2.1"
+agp = "9.4.1"
 cascade = "2.3.0"
-coilCompose = "3.4.0"
-compose = "1.12.0-alpha03"
+coilCompose = "3.6.3"
+compose = "1.12.1"
 datastorePreferences = "1.2.1"
 desugar_jdk_libs = "2.1.5"
-kotlin = "2.4.0"
+kotlin = "2.4.21"
 kotlinMetadataJvm = "2.4.0"
-ksp = "2.3.6"
-coreKtx = "1.19.0"
+ksp = "2.3.12"
+coreKtx = "1.19.1"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
-lifecycleRuntimeKtx = "2.10.0"
+lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
-composeBom = "2026.05.01"
+composeBom = "2026.09.00"
 ktlint = "14.2.0"
 detekt = "1.23.8"
 materialIconsExtended = "1.7.8"
-nav3Core = "1.1.2"
-lifecycleViewmodelNav3 = "2.10.0"
-kotlinSerialization = "2.4.0"
+nav3Core = "1.2.0"
+lifecycleViewmodelNav3 = "2.11.0"
+kotlinSerialization = "2.4.21"
 kotlinxSerializationCore = "1.11.0"
-material3AdaptiveNav3 = "1.3.0-beta02"
+material3AdaptiveNav3 = "1.3.0"
 material3AdaptiveNavSuite = "1.4.0"
-material3 = "1.5.0-alpha21"
-room_version = "2.8.4"
-paging_version = "3.5.0"
-hilt_version = "2.59.2"
-hilt_navigation_compose_version = "1.3.0"
-screenshot = "0.0.1-alpha15"
+material3 = "1.5.0-beta01"
+room_version = "2.8.5"
+paging_version = "3.5.3"
+hilt_version = "2.60.1"
+hilt_navigation_compose_version = "1.4.0"
+screenshot = "0.0.1-alpha16"
 material3WindowSizeClass = "1.4.0"
-readium = "3.3.0"
-fragment = "1.8.6"
-materialkolor = "5.0.0-alpha07"
+readium = "3.4.0"
+fragment = "1.9.1"
+materialkolor = "5.0.1"
 core-splashscreen = "1.2.0"
-animation = "1.11.2"
-appcompat = "1.7.1"
-kotlinx_collections_immutable = "0.3.8"
-media3 = "1.5.1"
-documentfile = "1.0.1"
+animation = "1.12.1"
+appcompat = "1.8.0"
+kotlinx_collections_immutable = "0.5.2"
+documentfile = "1.1.0"
 
 [libraries]
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
-androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
-androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "media3" }
-androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3" }
-androidx-media3-extractor = { group = "androidx.media3", name = "media3-extractor", version.ref = "media3" }
 jebml = { group = "org.jitsi", name = "jebml", version = "2.4.4-6-gb310849" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -128,4 +123,4 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt_version" }
 screenshot = { id = "com.android.compose.screenshot", version.ref = "screenshot" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 
-stability-analyzer = { id = "com.github.skydoves.compose.stability.analyzer", version = "0.9.0" }
+stability-analyzer = { id = "com.github.skydoves.compose.stability.analyzer", version = "0.15.0" }

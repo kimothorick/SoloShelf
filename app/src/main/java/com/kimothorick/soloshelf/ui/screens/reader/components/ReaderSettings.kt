@@ -104,7 +104,6 @@ fun ReaderSettingsContent(
 
         HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp), thickness = 0.5.dp)
 
-        // Screen Mode (Theme)
         Text(
             text = "Screen mode",
             style = MaterialTheme.typography.labelLarge,
@@ -125,7 +124,6 @@ fun ReaderSettingsContent(
         Spacer(modifier = Modifier.height(24.dp))
         HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp), thickness = 0.5.dp)
 
-        // Font Selection
         Text(
             text = "Font",
             style = MaterialTheme.typography.labelLarge,
@@ -141,7 +139,6 @@ fun ReaderSettingsContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Vertical Sliders Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -272,18 +269,14 @@ fun VerticalSettingSlider(
 
         val sliderState = rememberSliderState(
             value = value,
-            valueRange = range,
+            trackRange = range,
         )
 
-        // Sync external value to state
         LaunchedEffect(value) {
             if (sliderState.value != value) {
                 sliderState.value = value
             }
         }
-
-        // Sync state to external callback
-        sliderState.onValueChange = onValueChange
 
         VerticalSlider(
             state = sliderState,
@@ -300,10 +293,9 @@ fun VerticalSettingSlider(
             },
             thumb = {
             },
-            reverseDirection = true,
+            onValueChange =onValueChange
         )
 
-        // Icon/Text at bottom
         Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier.size(24.dp),

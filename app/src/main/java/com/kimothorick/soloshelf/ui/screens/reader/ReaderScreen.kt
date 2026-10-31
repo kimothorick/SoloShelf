@@ -10,24 +10,17 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,7 +35,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -59,7 +51,7 @@ import com.kimothorick.soloshelf.ui.components.CircularIconButton
 import com.kimothorick.soloshelf.ui.screens.reader.components.ReaderActionsPanel
 import com.kimothorick.soloshelf.ui.screens.reader.components.TableOfContents
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ReaderScreen(
     bookId: Long,
@@ -72,6 +64,9 @@ fun ReaderScreen(
     val showBars by viewModel.showBars.collectAsState()
     val showToc by viewModel.showToc.collectAsState()
     val showSettings by viewModel.showSettings.collectAsState()
+    val bookmarks by viewModel.bookmarks.collectAsState()
+    val notes by viewModel.notes.collectAsState()
+    val readPercentage by viewModel.readPercentage.collectAsState()
 
     val context = LocalContext.current
     val windowSizeClass = calculateWindowSizeClass(context as Activity)
@@ -85,7 +80,7 @@ fun ReaderScreen(
         // Ensure content spans the whole screen including cutouts
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        if (showBars && !showToc && !showSettings) {
+        if (showBars || showToc) {
             controller.show(WindowInsetsCompat.Type.systemBars())
         } else {
             controller.hide(WindowInsetsCompat.Type.systemBars())
@@ -115,8 +110,7 @@ fun ReaderScreen(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
     ) {
         if (isLoading || book?.bookId != bookId) {
             Box(
@@ -128,140 +122,91 @@ fun ReaderScreen(
                 CircularProgressIndicator()
             }
         } else {
-            Row(modifier = Modifier.fillMaxSize()) {
-                // Sidebar for Expanded Screens
-                if (useSidebar) {
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = showToc,
-                        enter = slideInHorizontally() + fadeIn(),
-                        exit = slideOutHorizontally() + fadeOut(),
-                    ) {
-                        Column(
+            Box(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                androidx.fragment.compose.AndroidFragment<ReaderFragment>(
+                    modifier = Modifier.fillMaxSize(),
+                )
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    if (showSettings) {
+                        Box(
                             modifier = Modifier
-                                .fillMaxHeight()
-                                .width(320.dp)
-                                .background(MaterialTheme.colorScheme.surface)
-                                .statusBarsPadding()
-                                .padding(16.dp),
-                        ) {
-                            // Back button
-                            IconButton(
-                                onClick = onBack,
-                                modifier = Modifier.padding(bottom = 16.dp),
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                        contentDescription = "Back",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                    Spacer(Modifier.width(4.dp))
-                                    Text(
-                                        text = "All Books",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
-
-                            publication?.let { pub ->
-                                TableOfContents(
-                                    toc = pub.tableOfContents,
-                                    onLinkSelected = { viewModel.onTocItemSelected(it) },
-                                )
-                            }
-                        }
+                                .fillMaxSize()
+                                .zIndex(45f)
+                                .clickable(
+                                    interactionSource = remember {
+                                        androidx.compose.foundation.interaction
+                                            .MutableInteractionSource()
+                                    },
+                                    indication = null,
+                                ) { viewModel.toggleSettings() },
+                        )
                     }
-                }
 
-                // Main Content Area
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                ) {
-                    // Reader content (Always Full Screen)
-                    androidx.fragment.compose.AndroidFragment<ReaderFragment>(
-                        modifier = Modifier.fillMaxSize(),
-                    )
-
-                    // Overlays
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        // Click outside to dismiss settings panel
-                        if (showSettings) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .zIndex(45f)
-                                    .clickable(
-                                        interactionSource = remember {
-                                            androidx.compose.foundation.interaction
-                                                .MutableInteractionSource()
-                                        },
-                                        indication = null,
-                                    ) { viewModel.toggleSettings() },
-                            )
-                        }
-
-                        // Actions Panel (Bottom Bar or Settings) - Fixed at Bottom Overlay
+                    if (!showToc) {
                         ReaderActionsPanel(
                             viewModel = viewModel,
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .zIndex(60f),
                         )
+                    }
 
-                        // Top Bar (Overlay)
-                        androidx.compose.animation.AnimatedVisibility(
-                            visible = showBars && (!useSidebar || !showToc) && !showSettings,
-                            enter = fadeIn() + slideInVertically(initialOffsetY = { -it }),
-                            exit = fadeOut() + slideOutVertically(targetOffsetY = { -it }),
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .zIndex(40f),
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = showBars && !showToc && !showSettings,
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { -it }),
+                        exit = fadeOut() + slideOutVertically(targetOffsetY = { -it }),
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .zIndex(40f),
+                    ) {
+                        ReaderTopBar(
+                            title = book?.title ?: "",
+                            onBack = onBack,
+                            onSearch = { /* TODO */ },
+                        )
+                    }
+
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = showToc,
+                        enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
+                        exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zIndex(50f),
+                    ) {
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.surfaceContainer,
                         ) {
-                            ReaderTopBar(
-                                title = book?.title ?: "",
-                                onBack = onBack,
-                                onSearch = { /* TODO */ },
-                            )
-                        }
-
-                        // Compact Overlay TOC (For phone/compact screens)
-                        if (showToc && !useSidebar) {
-                            Surface(
+                            Column(
                                 modifier = Modifier
-                                    .fillMaxHeight()
-                                    .width(320.dp)
-                                    .zIndex(50f)
-                                    .align(Alignment.CenterStart),
-                                color = MaterialTheme.colorScheme.surface,
-                                tonalElevation = 1.dp,
-                                shape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp),
+                                    .fillMaxSize()
+                                    .statusBarsPadding()
+                                    .padding(top = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
+                                CircularIconButton(
+                                    icon = R.drawable.ic_close,
+                                    label = stringResource(R.string.close),
+                                    onClick = { viewModel.toggleToc() },
+                                    modifier = Modifier.padding(start = 16.dp),
+                                )
+
                                 publication?.let { pub ->
                                     TableOfContents(
                                         toc = pub.tableOfContents,
+                                        bookmarks = bookmarks,
+                                        notes = notes,
+                                        readPercentage = readPercentage,
                                         onLinkSelected = { viewModel.onTocItemSelected(it) },
+                                        onBookmarkSelected = { viewModel.onLocatorSelected(it) },
+                                        onNoteSelected = { viewModel.onLocatorSelected(it) },
                                     )
                                 }
                             }
-                        }
-
-                        // Dimmed background to dismiss TOC
-                        if (showToc) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .zIndex(48f)
-                                    .background(
-                                        if (!useSidebar) {
-                                            Color.Black.copy(alpha = 0.3f)
-                                        } else {
-                                            Color.Transparent
-                                        },
-                                    ).clickable { viewModel.toggleToc() },
-                            )
                         }
                     }
                 }

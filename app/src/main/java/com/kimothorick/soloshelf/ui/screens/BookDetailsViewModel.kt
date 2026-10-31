@@ -2,10 +2,12 @@ package com.kimothorick.soloshelf.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.util.UnstableApi
 import com.kimothorick.soloshelf.data.BookRepository
 import com.kimothorick.soloshelf.data.models.Book
 import com.kimothorick.soloshelf.data.models.BookAndProgress
+import com.kimothorick.soloshelf.data.models.Shelf
+import com.kimothorick.soloshelf.data.models.ShelfBookCrossRef
+import com.kimothorick.soloshelf.data.models.ShelfWithBooks
 import com.kimothorick.soloshelf.domain.BookMetadataExtractor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,11 +17,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.readium.r2.shared.publication.Link
 import javax.inject.Inject
 
-@UnstableApi
 @HiltViewModel
 class BookDetailsViewModel @Inject constructor(
     private val bookRepository: BookRepository,
@@ -80,9 +83,64 @@ class BookDetailsViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
+    val shelves: StateFlow<List<ShelfWithBooks>> = bookRepository.getShelvesWithBooks()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList(),
+        )
+
     fun setBookId(id: Long) {
         if (bookId.value != id) {
             bookId.value = id
+        }
+    }
+
+    fun deleteBook(bookId: Long) {
+        viewModelScope.launch {
+            bookRepository.getBookByIdOnce(bookId)?.let {
+                bookRepository.deleteBook(it)
+            }
+        }
+    }
+
+    fun addBookToShelf(bookId: Long, shelfId: Long) {
+        viewModelScope.launch {
+            bookRepository.insertShelfBookCrossRef(
+                ShelfBookCrossRef(shelfId = shelfId, bookId = bookId)
+            )
+        }
+    }
+
+    fun removeBookFromShelf(bookId: Long, shelfId: Long) {
+        viewModelScope.launch {
+            bookRepository.deleteShelfBookCrossRef(
+                ShelfBookCrossRef(shelfId = shelfId, bookId = bookId)
+            )
+        }
+    }
+
+    fun createShelf(name: String) {
+        viewModelScope.launch {
+            bookRepository.insertShelf(Shelf(name = name))
+        }
+    }
+
+    fun toggleFavorite(bookId: Long) {
+        viewModelScope.launch {
+            bookRepository.toggleFavorite(bookId)
+        }
+    }
+
+    fun resetProgress(bookId: Long) {
+        viewModelScope.launch {
+            bookRepository.resetProgress(bookId)
+        }
+    }
+
+    fun markFinished(bookId: Long) {
+        viewModelScope.launch {
+            bookRepository.markFinished(bookId)
         }
     }
 }

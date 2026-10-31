@@ -1,5 +1,6 @@
 package com.kimothorick.soloshelf.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kimothorick.soloshelf.ui.theme.SoloShelfStyles
@@ -98,7 +100,9 @@ fun SoloShelfSegmentedListItem(
             Text(
                 text = supportingText,
                 style = SoloShelfTheme.typography.bodyMedium,
-                color = SoloShelfTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                color = SoloShelfTheme.colorScheme.onSurface.copy(alpha = 0.8f),
             )
         }
     } else {
@@ -109,7 +113,7 @@ fun SoloShelfSegmentedListItem(
         onClick = onClick,
         shapes = shapes,
         colors = ListItemDefaults.segmentedColors(
-           // containerColor = SoloShelfTheme.colorScheme.surfaceContaine,
+            containerColor = SoloShelfTheme.colorScheme.surfaceContainerHighest,
         ),
         leadingContent = leadingContent,
         supportingContent = supportingContent,
@@ -120,6 +124,8 @@ fun SoloShelfSegmentedListItem(
             text = headlineText,
             style = SoloShelfTextStyles.segmentedListItemHeaderText,
             color = SoloShelfTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

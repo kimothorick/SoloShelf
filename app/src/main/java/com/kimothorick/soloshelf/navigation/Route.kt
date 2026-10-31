@@ -35,6 +35,10 @@ sealed interface Route :
 
     @Serializable
     @Parcelize
+    data object LibraryFolders : Route, NavKey
+
+    @Serializable
+    @Parcelize
     data object EverythingElse : Route, NavKey
 
     @Serializable

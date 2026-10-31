@@ -10,6 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
@@ -34,6 +35,7 @@ fun SoloShelfTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior? = null,
     actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
+    colors: TopAppBarColors? = null,
 ) {
     LargeTopAppBar(
         modifier = modifier,
@@ -58,9 +60,12 @@ fun SoloShelfTopAppBar(
         scrollBehavior = scrollBehavior,
         actions = actions,
         windowInsets = windowInsets,
-        colors = TopAppBarDefaults.topAppBarColors(
+        colors = colors ?: TopAppBarDefaults.topAppBarColors(
             containerColor = SoloShelfTheme.colorScheme.surfaceContainer,
             scrolledContainerColor = SoloShelfTheme.colorScheme.surfaceContainer,
+            navigationIconContentColor = SoloShelfTheme.colorScheme.onSurface,
+            titleContentColor = SoloShelfTheme.colorScheme.onSurface,
+            actionIconContentColor = SoloShelfTheme.colorScheme.onSurface,
         ),
     )
 }

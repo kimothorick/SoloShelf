@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kimothorick.soloshelf.data.BookRepository
 import com.kimothorick.soloshelf.data.models.Book
+import com.kimothorick.soloshelf.data.models.Bookmark
+import com.kimothorick.soloshelf.data.models.Note
 import com.kimothorick.soloshelf.data.models.ReadingProgress
 import com.kimothorick.soloshelf.data.preferences.UserPreferencesRepository
 import com.kimothorick.soloshelf.domain.PublicationRetriever
@@ -30,6 +32,11 @@ import org.readium.r2.shared.util.asset.AssetRetriever
 import org.readium.r2.shared.util.getOrElse
 import javax.inject.Inject
 
+sealed interface NavigationTarget {
+    data class LinkTarget(val link: Link) : NavigationTarget
+    data class LocatorTarget(val locator: Locator) : NavigationTarget
+}
+
 @HiltViewModel
 class ReaderViewModel @Inject constructor(
     private val bookRepository: BookRepository,
@@ -51,8 +58,17 @@ class ReaderViewModel @Inject constructor(
     private val _initialLocator = MutableStateFlow<Locator?>(null)
     val initialLocator: StateFlow<Locator?> = _initialLocator.asStateFlow()
 
-    private val _navigationEvent = MutableSharedFlow<Link>()
-    val navigationEvent: SharedFlow<Link> = _navigationEvent.asSharedFlow()
+    private val _bookmarks = MutableStateFlow<List<Bookmark>>(emptyList())
+    val bookmarks: StateFlow<List<Bookmark>> = _bookmarks.asStateFlow()
+
+    private val _notes = MutableStateFlow<List<Note>>(emptyList())
+    val notes: StateFlow<List<Note>> = _notes.asStateFlow()
+
+    private val _readPercentage = MutableStateFlow(0f)
+    val readPercentage: StateFlow<Float> = _readPercentage.asStateFlow()
+
+    private val _navigationEvent = MutableSharedFlow<NavigationTarget>()
+    val navigationEvent: SharedFlow<NavigationTarget> = _navigationEvent.asSharedFlow()
 
     private var isInitialLoad = true
 
@@ -135,6 +151,7 @@ class ReaderViewModel @Inject constructor(
             if (dbBookAndProgress != null) {
                 _book.value = dbBookAndProgress.book
                 dbBookAndProgress.progress?.let { progress ->
+                    _readPercentage.value = progress.readPercentage
                     try {
                         val json = JSONObject(progress.lastPosition)
                         _initialLocator.value = Locator.fromJSON(json)
@@ -145,6 +162,18 @@ class ReaderViewModel @Inject constructor(
                 openPublication(dbBookAndProgress.book)
             } else {
                 _isLoading.value = false
+            }
+        }
+
+        viewModelScope.launch {
+            bookRepository.getBookWithBookmarks(bookId).collect {
+                _bookmarks.value = it?.bookmarks ?: emptyList()
+            }
+        }
+
+        viewModelScope.launch {
+            bookRepository.getBookWithNotes(bookId).collect {
+                _notes.value = it?.notes ?: emptyList()
             }
         }
     }
@@ -172,18 +201,33 @@ class ReaderViewModel @Inject constructor(
     }
 
     fun toggleToc() {
-        _showToc.value = !_showToc.value
-        // Restore bars when TOC is closed, hide them when opened
-        _showBars.value = !_showToc.value
+        val willShow = !_showToc.value
+        _showToc.value = willShow
+        if (willShow) {
+            _showSettings.value = false
+        }
+        _showBars.value = !willShow
     }
 
     fun toggleSettings() {
-        _showSettings.value = !_showSettings.value
+        val willShow = !_showSettings.value
+        _showSettings.value = willShow
+        if (willShow) {
+            _showToc.value = false
+        }
     }
 
     fun onTocItemSelected(link: Link) {
         viewModelScope.launch {
-            _navigationEvent.emit(link)
+            _navigationEvent.emit(NavigationTarget.LinkTarget(link))
+            _showToc.value = false
+            _showBars.value = false // Hide bars to start reading
+        }
+    }
+
+    fun onLocatorSelected(locator: Locator) {
+        viewModelScope.launch {
+            _navigationEvent.emit(NavigationTarget.LocatorTarget(locator))
             _showToc.value = false
             _showBars.value = false // Hide bars to start reading
         }
@@ -218,12 +262,14 @@ class ReaderViewModel @Inject constructor(
             return
         }
         _initialLocator.value = locator
+        val percentage = (locator.locations.totalProgression?.times(100f))?.toFloat() ?: 0f
+        _readPercentage.value = percentage
 
         viewModelScope.launch {
             val progress = ReadingProgress(
                 bookId = currentBook.bookId,
                 lastPosition = locator.toJSON().toString(),
-                readPercentage = (locator.locations.totalProgression?.times(100f))?.toFloat() ?: 0f,
+                readPercentage = percentage,
                 lastAccessed = System.currentTimeMillis()
             )
             bookRepository.insertReadingProgress(progress)

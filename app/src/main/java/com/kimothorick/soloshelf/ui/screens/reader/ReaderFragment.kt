@@ -212,9 +212,12 @@ class ReaderFragment :
     private fun observeNavigationEvents() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.navigationEvent.collectLatest { link ->
-                    (childFragmentManager.findFragmentById(R.id.navigator_container) as? VisualNavigator)
-                        ?.go(link, animated = true)
+                viewModel.navigationEvent.collectLatest { target ->
+                    val navigator = childFragmentManager.findFragmentById(R.id.navigator_container) as? VisualNavigator ?: return@collectLatest
+                    when (target) {
+                        is NavigationTarget.LinkTarget -> navigator.go(target.link, animated = true)
+                        is NavigationTarget.LocatorTarget -> navigator.go(target.locator, animated = true)
+                    }
                 }
             }
         }

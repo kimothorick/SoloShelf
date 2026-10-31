@@ -1,10 +1,13 @@
 package com.kimothorick.soloshelf.navigation
 
+import androidx.annotation.OptIn
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -21,14 +24,13 @@ import com.kimothorick.soloshelf.ui.screens.main.MainScreen
 import com.kimothorick.soloshelf.ui.screens.reader.ReaderScreen
 import com.kimothorick.soloshelf.ui.screens.settings.AppearanceScreen
 import com.kimothorick.soloshelf.ui.screens.settings.EverythingElseScreen
+import com.kimothorick.soloshelf.ui.screens.settings.LibraryFoldersScreen
 import com.kimothorick.soloshelf.ui.screens.settings.LibraryStorageScreen
 import com.kimothorick.soloshelf.ui.screens.settings.Settings
 import com.kimothorick.soloshelf.ui.screens.settings.SettingsTwoPaneScene
 import com.kimothorick.soloshelf.ui.screens.settings.SettingsViewModel
 import com.kimothorick.soloshelf.ui.screens.settings.rememberSettingsTwoPaneSceneStrategy
-
-import androidx.annotation.OptIn
-import androidx.media3.common.util.UnstableApi
+import com.kimothorick.soloshelf.util.isAtLeastMedium
 
 data class MainDestination(
     val route: Route,
@@ -36,7 +38,6 @@ data class MainDestination(
     val icon: ImageVector,
 )
 
-@OptIn(UnstableApi::class)
 @Composable
 fun NavigationRoot(
     mainViewModel: MainViewModel,
@@ -50,9 +51,28 @@ fun NavigationRoot(
     val entryProvider = remember {
         entryProvider<NavKey> {
             entry<Route.Settings>(metadata = SettingsTwoPaneScene.listPane()) {
+                val windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
+                val isWide = windowSizeClass.isAtLeastMedium
+
                 Settings(
                     viewModel = settingsViewModel,
-                    onBack = { rootBackStack.removeLastOrNull() },
+                    onBack = {
+                        if (isWide) {
+                            val settingsRoutes = setOf(
+                                Route.Settings,
+                                Route.Appearance,
+                                Route.LibraryStorage,
+                                Route.LibraryFolders,
+                                Route.EverythingElse,
+                            )
+                            rootBackStack.removeAll { it in settingsRoutes }
+                            if (!rootBackStack.contains(Route.Library)) {
+                                rootBackStack.add(Route.Library)
+                            }
+                        } else {
+                            rootBackStack.removeLastOrNull()
+                        }
+                    },
                     onNavigateToAppearance = {
                         rootBackStack.addSettingsDetail(Route.Appearance)
                     },
@@ -74,6 +94,16 @@ fun NavigationRoot(
 
             entry<Route.LibraryStorage>(metadata = SettingsTwoPaneScene.detailPane()) {
                 LibraryStorageScreen(
+                    viewModel = settingsViewModel,
+                    onBack = { rootBackStack.removeLastOrNull() },
+                    onNavigateToLibraryFolders = {
+                        rootBackStack.add(Route.LibraryFolders)
+                    },
+                )
+            }
+
+            entry<Route.LibraryFolders>(metadata = SettingsTwoPaneScene.detailPane()) {
+                LibraryFoldersScreen(
                     viewModel = settingsViewModel,
                     onBack = { rootBackStack.removeLastOrNull() },
                 )
@@ -118,6 +148,9 @@ fun NavigationRoot(
             entry<Route.Library> {
                 MainScreen(
                     onNavigateToSettings = { rootBackStack.add(Route.Settings) },
+                    onNavigateToReader = { bookId ->
+                        rootBackStack.add(Route.Reader(bookId))
+                    },
                     onNavigateToBookDetails = { bookId ->
                         rootBackStack.add(Route.BookDetails(bookId))
                     },
@@ -131,6 +164,9 @@ fun NavigationRoot(
                     onNavigateToBookDetails = { bookId ->
                         rootBackStack.add(Route.BookDetails(bookId))
                     },
+                    onNavigateToReader = { bookId ->
+                        rootBackStack.add(Route.Reader(bookId))
+                    },
                     viewModel = mainViewModel,
                 )
             }
@@ -140,6 +176,9 @@ fun NavigationRoot(
                     onNavigateToSettings = { rootBackStack.add(Route.Settings) },
                     onNavigateToBookDetails = { bookId ->
                         rootBackStack.add(Route.BookDetails(bookId))
+                    },
+                    onNavigateToReader = { bookId ->
+                        rootBackStack.add(Route.Reader(bookId))
                     },
                     viewModel = mainViewModel,
                 )

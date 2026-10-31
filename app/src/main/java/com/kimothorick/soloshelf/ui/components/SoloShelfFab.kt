@@ -1,19 +1,28 @@
 package com.kimothorick.soloshelf.ui.components
 
+import androidx.compose.foundation.layout.absolutePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
@@ -26,7 +35,7 @@ data class FabMenuItem(
     val contentDescription: String? = null,
 )
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SoloShelfFab(
     currentRoute: Route,
@@ -34,7 +43,8 @@ fun SoloShelfFab(
     onExpandedChange: (Boolean) -> Unit,
     onAddEbookFileClick: () -> Unit,
     onAddFolderClick: () -> Unit,
-    onCreateCollectionClick: () -> Unit,
+    onCreateShelfClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(currentRoute) {
         onExpandedChange(false)
@@ -44,8 +54,8 @@ fun SoloShelfFab(
         Route.Bookshelf -> listOf(
             FabMenuItem(
                 icon = Icons.AutoMirrored.Filled.PlaylistAdd,
-                label = "Create Collection",
-                onClick = onCreateCollectionClick,
+                label = "Create Shelf",
+                onClick = onCreateShelfClick,
             ),
         )
 
@@ -62,42 +72,45 @@ fun SoloShelfFab(
             ),
         )
     }
-
-    FloatingActionButtonMenu(
-        expanded = expanded,
-        button = {
-            ToggleFloatingActionButton(
-                checked = expanded,
-                onCheckedChange = {
-                    if (menuItems.size == 1) {
-                        menuItems[0].onClick()
-                    } else {
-                        onExpandedChange(it)
-                    }
-                },
-                containerCornerRadius = { 100.dp },
-            ) {
-                Icon(
-                    painter = rememberVectorPainter(
-                        if (expanded) Icons.Rounded.Close else Icons.Rounded.Add,
-                    ),
-                    contentDescription = null,
-                )
-            }
-        },
-        content = {
-            if (menuItems.size > 1) {
-                menuItems.forEach { item ->
-                    FloatingActionButtonMenuItem(
-                        onClick = {
-                            item.onClick()
-                            onExpandedChange(false)
-                        },
-                        icon = { },
-                        text = { Text(text = item.label) },
+    CompositionLocalProvider(
+        LocalMinimumInteractiveComponentEnforcement provides false,
+    ) {
+        FloatingActionButtonMenu(
+            expanded = expanded,
+            button = {
+                ToggleFloatingActionButton(
+                    checked = expanded,
+                    onCheckedChange = { isChecked ->
+                        if (menuItems.size == 1) {
+                            menuItems[0].onClick()
+                        } else {
+                            onExpandedChange(isChecked)
+                        }
+                    },
+                    containerCornerRadius = { 100.dp },
+                ) {
+                    Icon(
+                        painter = rememberVectorPainter(
+                            if (expanded) Icons.Rounded.Close else Icons.Rounded.Add,
+                        ),
+                        contentDescription = null,
                     )
                 }
-            }
-        },
-    )
+            },
+            content = {
+                if (menuItems.size > 1) {
+                    menuItems.forEach { item ->
+                        FloatingActionButtonMenuItem(
+                            onClick = {
+                                item.onClick()
+                                onExpandedChange(false)
+                            },
+                            icon = { },
+                            text = { Text(text = item.label) },
+                        )
+                    }
+                }
+            },
+        )
+    }
 }

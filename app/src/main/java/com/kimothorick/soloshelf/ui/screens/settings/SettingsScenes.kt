@@ -45,28 +45,31 @@ class SettingsTwoPaneScene<T : Any>(
     override val key: Any,
     override val previousEntries: List<NavEntry<T>>,
     val listEntry: NavEntry<T>,
-    val detailEntry: NavEntry<T>,
+    val detailEntry: NavEntry<T>?,
 ) : Scene<T> {
-    override val entries: List<NavEntry<T>> = listOf(listEntry, detailEntry)
+    override val entries: List<NavEntry<T>> = listOfNotNull(listEntry, detailEntry)
     override val content: @Composable (() -> Unit) = {
         Row(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.weight(0.5f)) {
+            val listWeight = if (detailEntry != null) 0.5f else 1f
+            Column(modifier = Modifier.weight(listWeight)) {
                 CompositionLocalProvider(LocalSettingsPane provides SettingsPane.LIST) {
                     listEntry.Content()
                 }
             }
-            Column(modifier = Modifier.weight(0.5f)) {
-                AnimatedContent(
-                    targetState = detailEntry,
-                    transitionSpec = {
-                        (slideInHorizontally { it / 4 } + fadeIn()).togetherWith(
-                            fadeOut(),
-                        )
-                    },
-                    label = "SettingsDetailChange",
-                ) { entry ->
-                    CompositionLocalProvider(LocalSettingsPane provides SettingsPane.DETAIL) {
-                        entry.Content()
+            if (detailEntry != null) {
+                Column(modifier = Modifier.weight(0.5f)) {
+                    AnimatedContent(
+                        targetState = detailEntry,
+                        transitionSpec = {
+                            (slideInHorizontally { it / 4 } + fadeIn()).togetherWith(
+                                fadeOut(),
+                            )
+                        },
+                        label = "SettingsDetailChange",
+                    ) { entry ->
+                        CompositionLocalProvider(LocalSettingsPane provides SettingsPane.DETAIL) {
+                            entry.Content()
+                        }
                     }
                 }
             }
@@ -122,18 +125,16 @@ class SettingsTwoPaneSceneStrategy<T : Any>(
             return null
         }
 
-        val detailEntry =
-            entries.lastOrNull()?.takeIf { it.metadata.contains(SettingsTwoPaneScene.DetailKey) } ?: return null
         val listEntry = entries.findLast { it.metadata.contains(SettingsTwoPaneScene.ListKey) } ?: return null
+        val detailEntry = entries.lastOrNull()?.takeIf { it.metadata.contains(SettingsTwoPaneScene.DetailKey) }
 
         // We use the list's contentKey to uniquely identify the scene.
-        // This allows the detail panes to be displayed instantly through recomposition, rather than
-        // having NavDisplay animate the whole scene out when the selected detail item changes.
+        // This keeps the list pane 100% stable and stationary without fading out/in when selecting different settings.
         val sceneKey = listEntry.contentKey
 
         return SettingsTwoPaneScene(
             key = sceneKey,
-            previousEntries = entries.dropLast(1),
+            previousEntries = entries.filter { it != listEntry && it != detailEntry },
             listEntry = listEntry,
             detailEntry = detailEntry,
         )

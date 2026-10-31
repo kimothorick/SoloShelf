@@ -1,26 +1,14 @@
 <resources>
     <string name="app_name">SoloShelf</string>
     <string name="welcome_to_soloshelf">Welcome to SoloShelf</string>
-    <string name="soloshelf_description">This is your private, offline-first home for every ebook and audiobook you own, built for simplicity and complete ownership.</string>
+    <string name="soloshelf_description">This is your private, offline-first home for every ebook you own, built for simplicity and complete ownership.</string>
     <string name="get_started">Get Started</string>
     <string name="app_icon">App Icon</string>
     <string name="back">Back</string>
     <string name="skip">Skip</string>
     <string name="next">Next</string>
     <string name="finish">Finish</string>
-    <string name="grant_permission">Enable Notifications</string>
-    <string name="grant_permission_success">Permission granted</string>
-    <string name="grant_permission_denied">Permission granted</string>
-    <string name="grant_permission_denied_forever">Grant Permission in settings</string>
-    <string name="onboarding_notification_title">Notifications</string>
-    <string name="onboarding_notification_description">
-        Enable notifications to conveniently manage audiobook playback with controls on your lock screen, allowing you to see what\'s playing and make adjustments without having to reopen the app.
-    </string>
-    <string name="onboarding_audio_permission_title">Listen to Audiobooks</string>
-    <string name="onboarding_audio_permission_description">
-        Grant permission to enable audiobook playback. This allows the app to play, pause, and manage your audiobooks seamlessly.
-    </string>
-    <string name="grant_audio_permission">Grant Audio Permission</string>
+
 
     <string name="settings_title">Settings</string>
     <string name="settings_screen_placeholder">Settings screen</string>
@@ -35,12 +23,10 @@
     <string name="library">Library</string>
     <string name="bookshelf">Bookshelf</string>
     <string name="ebooks">Ebooks</string>
-    <string name="audiobooks">Audiobooks</string>
-    <string name="collections">Collections</string>
+    <string name="shelves">Shelves</string>
 
     <string name="library_screen_placeholder">Library screen</string>
     <string name="bookshelf_screen_placeholder">Bookshelf screen</string>
-    <string name="audiobooks_screen_placeholder">Audiobooks screen</string>
 
     <!-- Settings Screen -->
     <string name="settings_general">General</string>
@@ -64,6 +50,7 @@
     <string name="color_mint">Mint</string>
     <string name="color_amber">Amber</string>
     <string name="color_plum">Plum</string>
+    <string name="color_walnut">Walnut</string>
     <string name="color_custom">Custom</string>
     <string name="seed_color">Seed color</string>
 
@@ -105,11 +92,15 @@
     <string name="privacy_policy">Privacy policy</string>
     <string name="manage_library_folders">Manage library folders</string>
     <string name="manage_library_folders_desc">Choose where soloshelf scans for books</string>
+    <string name="folder_added">Library folder added successfully</string>
     <string name="auto_scan_on_startup">Auto-scan on startup</string>
-    <string name="auto_scan_on_startup_desc">Index new ebooks and audiobooks on startup</string>
+    <string name="auto_scan_on_startup_desc">Index new ebooks on startup</string>
     <string name="clear_image_cache">Clear image cache</string>
     <string name="clear_image_cache_desc">Purge thumbnails and temp files (%1$s)</string>
     <string name="app_info">App info</string>
+    <string name="about_app">About App</string>
+    <string name="developer_credits">Developer Credits</string>
+    <string name="open_source_note">SoloShelf is an open source app and will always be.</string>
     <string name="github">Github</string>
     <string name="credits">Credits</string>
     <string name="developer">Developer</string>
@@ -133,7 +124,11 @@
     <string name="order">Order</string>
     <string name="apply">Apply</string>
     <string name="done_action">Done</string>
-    <string name="collection_items_authors">%1$d items • %2$d authors</string>
+    <plurals name="shelf_books_count">
+        <item quantity="one">%d book</item>
+        <item quantity="other">%d books</item>
+    </plurals>
+    <string name="shelf_items_authors">%1$d items • %2$d authors</string>
     <string name="start_reading">Start reading</string>
     <string name="continue_reading">Continue reading</string>
     <string name="continue_reading_progress">Continue reading • %1$d%%</string>
@@ -159,14 +154,12 @@
     <string name="year">YEAR</string>
 
     <string name="currently_reading">Currently Reading</string>
-    <string name="continue_listening">Continue listening</string>
+    <string name="continue_where_you_left_off">Pick up where you left off</string>
     <string name="all_books">All Books</string>
-    <string name="all_audiobooks">All Audiobooks</string>
     <string name="by_author">by %1$s</string>
     <string name="pages_left">%1$s pages left</string>
     <string name="finished">Finished</string>
     <string name="pages_count">%1$s pages</string>
-    <string name="pages_left_short">%1$d left</string>
     <string name="pages_short">%1$d</string>
     <string name="hours_left">%1$d h left</string>
     <string name="minutes_left">%1$d m left</string>
@@ -177,9 +170,9 @@
     <string name="hours_minutes">%1$d h %2$d m</string>
     <string name="minutes">%1$d m</string>
     <string name="time_left">%1$s left</string>
-    <string name="add_to_collection">Add to Collection</string>
+    <string name="add_to_shelf">Add to Shelf</string>
     <string name="delete">Delete</string>
-    <string name="no_collections_found">No collections found</string>
+    <string name="no_shelves_found">No shelves found</string>
     <string name="cancel">Cancel</string>
     <string name="delete_book">Delete Book</string>
     <string name="delete_book_desc">Are you sure you want to delete \"%1$s\" from your library? \nThis action cannot be undone.</string>
@@ -204,4 +197,11 @@
 
     <!--Playback speed-->
     <string name="playback_1x">1x</string>
+    <string name="no_books_added">No books added yet</string>
+    <string name="reflowable">Reflowable</string>
+    <string name="layout">Layout</string>
+    <string name="close">Close</string>
+    <string name="good_morning_greeting">Good Morning</string>
+    <string name="good_afternoon_greeting">Good Afternoon</string>
+    <string name="good_evening_greeting">Good Evening</string>
 </resources>

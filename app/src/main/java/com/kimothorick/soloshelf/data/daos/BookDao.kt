@@ -16,9 +16,9 @@ import com.kimothorick.soloshelf.data.models.BookWithEbookDetails
 import com.kimothorick.soloshelf.data.models.BookWithHighlights
 import com.kimothorick.soloshelf.data.models.BookWithNotes
 import com.kimothorick.soloshelf.data.models.Bookmark
-import com.kimothorick.soloshelf.data.models.Collection
-import com.kimothorick.soloshelf.data.models.CollectionBookCrossRef
-import com.kimothorick.soloshelf.data.models.CollectionWithBooks
+import com.kimothorick.soloshelf.data.models.Shelf
+import com.kimothorick.soloshelf.data.models.ShelfBookCrossRef
+import com.kimothorick.soloshelf.data.models.ShelfWithBooks
 import com.kimothorick.soloshelf.data.models.Highlight
 import com.kimothorick.soloshelf.data.models.Note
 import com.kimothorick.soloshelf.data.models.ReadingProgress
@@ -58,6 +58,9 @@ interface BookDao {
     @Query("SELECT * FROM books WHERE filePath = :filePath")
     suspend fun getBookByFilePath(filePath: String): Book?
 
+    @Query("SELECT * FROM books")
+    suspend fun getAllBooks(): List<Book>
+
     @Query("SELECT * FROM books WHERE bookId = :id")
     fun getBookById(id: Long): Flow<Book?>
 
@@ -79,9 +82,10 @@ interface BookDao {
         SELECT books.* FROM books 
         LEFT JOIN progress ON books.bookId = progress.bookId 
         ORDER BY progress.lastAccessed DESC
+        LIMIT 8
     """,
     )
-    fun getRecentEbooks(): PagingSource<Int, BookWithEbookDetails>
+    fun getRecentEbooks(): Flow<List<BookWithEbookDetails>>
 
     @Query("SELECT * FROM books WHERE bookId = :id")
     suspend fun getBookByIdOnce(id: Long): Book?
@@ -117,17 +121,19 @@ interface BookDao {
         book: Book,
     )
 
-    // Collections
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCollection(collection: Collection): Long
+    suspend fun insertShelf(shelf: Shelf): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCollectionBookCrossRef(crossRef: CollectionBookCrossRef)
-
-    @Transaction
-    @Query("SELECT * FROM collections")
-    fun getCollectionsWithBooks(): Flow<List<CollectionWithBooks>>
+    suspend fun insertShelfBookCrossRef(crossRef: ShelfBookCrossRef)
 
     @Delete
-    suspend fun deleteCollection(collection: Collection)
+    suspend fun deleteShelfBookCrossRef(crossRef: ShelfBookCrossRef)
+
+    @Transaction
+    @Query("SELECT * FROM shelves")
+    fun getShelvesWithBooks(): Flow<List<ShelfWithBooks>>
+
+    @Delete
+    suspend fun deleteShelf(shelf: Shelf)
 }

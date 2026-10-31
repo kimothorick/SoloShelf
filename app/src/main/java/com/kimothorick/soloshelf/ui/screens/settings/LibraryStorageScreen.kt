@@ -38,13 +38,18 @@ import com.kimothorick.soloshelf.ui.tooling.DevicePreviews
 fun LibraryStorageScreen(
     viewModel: SettingsViewModel,
     onBack: () -> Unit,
+    onNavigateToLibraryFolders: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val autoScanOnStartup by viewModel.autoScanOnStartup.collectAsStateWithLifecycle()
+    val cacheSize by viewModel.cacheSize.collectAsStateWithLifecycle()
 
     LibraryStorageScreenContent(
         autoScanOnStartup = autoScanOnStartup,
         onAutoScanOnStartupChange = viewModel::setAutoScanOnStartup,
+        cacheSize = cacheSize,
+        onClearCache = viewModel::clearCache,
+        onNavigateToLibraryFolders = onNavigateToLibraryFolders,
         onBack = onBack,
         modifier = modifier,
     )
@@ -58,6 +63,9 @@ fun LibraryStorageScreen(
 fun LibraryStorageScreenContent(
     autoScanOnStartup: Boolean,
     onAutoScanOnStartupChange: (Boolean) -> Unit,
+    cacheSize: String,
+    onClearCache: () -> Unit,
+    onNavigateToLibraryFolders: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -94,7 +102,7 @@ fun LibraryStorageScreenContent(
                     ),
                 ) {
                     SoloShelfSegmentedListItem(
-                        onClick = { /* TODO: Manage folders */ },
+                        onClick = onNavigateToLibraryFolders,
                         shapes = ListItemDefaults.segmentedShapes(0, 3),
                         headlineText = stringResource(R.string.manage_library_folders),
                         supportingText = stringResource(R.string.manage_library_folders_desc),
@@ -120,10 +128,10 @@ fun LibraryStorageScreenContent(
                     )
 
                     SoloShelfSegmentedListItem(
-                        onClick = { /* TODO: Clear image cache */ },
+                        onClick = onClearCache,
                         shapes = ListItemDefaults.segmentedShapes(2, 3),
                         headlineText = stringResource(R.string.clear_image_cache),
-                        supportingText = stringResource(R.string.clear_image_cache_desc, "140mb"),
+                        supportingText = stringResource(R.string.clear_image_cache_desc, cacheSize),
                     )
                 }
             }
@@ -138,6 +146,9 @@ private fun LibraryStorageScreenPreview() {
         LibraryStorageScreenContent(
             autoScanOnStartup = true,
             onAutoScanOnStartupChange = {},
+            cacheSize = "140mb",
+            onClearCache = {},
+            onNavigateToLibraryFolders = {},
             onBack = {},
         )
     }

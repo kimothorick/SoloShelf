@@ -11,10 +11,12 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.kimothorick.soloshelf.data.models.LibraryFolder
 import com.kimothorick.soloshelf.util.Constants
 import com.materialkolor.PaletteStyle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = Constants.DATASTORE_NAME)
 
@@ -39,6 +41,7 @@ enum class ColorTheme {
     MINT,
     AMBER,
     PLUM,
+    WALNUT,
     CUSTOM,
 }
 
@@ -66,8 +69,8 @@ class UserPreferencesRepository(
     private val PALETTE_STYLE = stringPreferencesKey("palette_style")
     private val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
     private val SORT_ORDER = stringPreferencesKey("sort_order")
+    private val LIBRARY_FOLDERS = stringPreferencesKey("library_folders")
 
-    // Reader Preferences
     private val READER_THEME = stringPreferencesKey("reader_theme")
     private val READER_FONT_FAMILY = stringPreferencesKey("reader_font_family")
     private val READER_FONT_SIZE = intPreferencesKey("reader_font_size")
@@ -117,6 +120,20 @@ class UserPreferencesRepository(
         it[AUTO_SCAN_ON_STARTUP] ?: true
     }
 
+    val libraryFolders: Flow<List<LibraryFolder>> = context.dataStore.data.map { preferences ->
+        val jsonString = preferences[LIBRARY_FOLDERS]
+        if (jsonString.isNullOrEmpty()) {
+            emptyList()
+        } else {
+            try {
+                Json.decodeFromString<List<LibraryFolder>>(jsonString)
+            } catch (e: Exception) {
+                Log.e("UserPreferences", "Failed to parse library folders", e)
+                emptyList()
+            }
+        }
+    }
+
     val customSeedColor: Flow<Color> = context.dataStore.data.map {
         val colorInt = it[CUSTOM_SEED_COLOR] ?: Color.Blue.toArgb()
         Color(colorInt)
@@ -147,7 +164,6 @@ class UserPreferencesRepository(
         }
     }
 
-    // Reader Preferences
     val readerTheme: Flow<String> = context.dataStore.data.map { it[READER_THEME] ?: "light" }
     val readerFontFamily: Flow<String?> = context.dataStore.data.map { it[READER_FONT_FAMILY] }
     val readerFontSize: Flow<Int> = context.dataStore.data.map { it[READER_FONT_SIZE] ?: 100 }
@@ -198,6 +214,14 @@ class UserPreferencesRepository(
     ) {
         context.dataStore.edit {
             it[AUTO_SCAN_ON_STARTUP] = enabled
+        }
+    }
+
+    suspend fun updateLibraryFolders(
+        folders: List<LibraryFolder>,
+    ) {
+        context.dataStore.edit { preferences ->
+            preferences[LIBRARY_FOLDERS] = Json.encodeToString(folders)
         }
     }
 

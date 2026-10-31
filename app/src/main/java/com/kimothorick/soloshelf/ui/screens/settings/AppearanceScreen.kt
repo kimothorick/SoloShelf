@@ -2,6 +2,7 @@ package com.kimothorick.soloshelf.ui.screens.settings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -32,6 +34,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -41,6 +44,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -79,7 +83,16 @@ import com.kimothorick.soloshelf.ui.components.SoloShelfTopAppBar
 import com.kimothorick.soloshelf.ui.components.Switch
 import com.kimothorick.soloshelf.ui.components.ToggleableButtonGroup
 import com.kimothorick.soloshelf.ui.components.ToggleableButtonItem
+import com.kimothorick.soloshelf.ui.theme.AMBER
+import com.kimothorick.soloshelf.ui.theme.CRIMSON
+import com.kimothorick.soloshelf.ui.theme.CYAN_TEAL
+import com.kimothorick.soloshelf.ui.theme.IRIS
+import com.kimothorick.soloshelf.ui.theme.MINT
+import com.kimothorick.soloshelf.ui.theme.OATMEAL
+import com.kimothorick.soloshelf.ui.theme.PLUM
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
+import com.kimothorick.soloshelf.ui.theme.TERRACOTTA
+import com.kimothorick.soloshelf.ui.theme.WALNUT
 import com.kimothorick.soloshelf.ui.tooling.ComponentPreviews
 import com.materialkolor.PaletteStyle
 
@@ -177,10 +190,12 @@ fun AppearanceScreenContent(
             ToggleableButtonGroup(
                 items = themePreferenceItems,
                 onItemSelected = { onThemePreferenceChange(it.identifier as AppTheme) },
-                modifier = Modifier.fillMaxWidth().background(
-                    color = SoloShelfTheme.colorScheme.surfaceContainer,
-                    shape = MaterialTheme.shapes.extraLarge,
-                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = SoloShelfTheme.colorScheme.surfaceContainer,
+                        shape = MaterialTheme.shapes.extraLarge,
+                    ),
             )
 
             SoloShelfSettingsItem(
@@ -212,10 +227,12 @@ fun AppearanceScreenContent(
             ToggleableButtonGroup(
                 items = themeModeItems,
                 onItemSelected = { onThemeModeChange(it.identifier as ThemeMode) },
-                modifier = Modifier.fillMaxWidth().background(
-                    color = SoloShelfTheme.colorScheme.surfaceContainer,
-                    shape = MaterialTheme.shapes.extraLarge,
-                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = SoloShelfTheme.colorScheme.surfaceContainer,
+                        shape = MaterialTheme.shapes.extraLarge,
+                    ),
             )
 
             if (themeMode == ThemeMode.CUSTOM) {
@@ -233,14 +250,15 @@ fun AppearanceScreenContent(
                         if (isDark) Color.Black else Color.White,
                         ColorTheme.MONO,
                     ),
-                    ColorPreset(stringResource(R.string.color_cyan_teal), Color(0xFF2C9C92), ColorTheme.CYAN_TEAL),
-                    ColorPreset(stringResource(R.string.color_terracotta), Color(0xFFC8644A), ColorTheme.TERRACOTTA),
-                    ColorPreset(stringResource(R.string.color_iris), Color(0xFF7060CB), ColorTheme.IRIS),
-                    ColorPreset(stringResource(R.string.color_oatmeal), Color(0xFFB5A48B), ColorTheme.OATMEAL),
-                    ColorPreset(stringResource(R.string.color_crimson), Color(0xFFB83A4B), ColorTheme.CRIMSON),
-                    ColorPreset(stringResource(R.string.color_mint), Color(0xFF52A881), ColorTheme.MINT),
-                    ColorPreset(stringResource(R.string.color_amber), Color(0xFFD68A27), ColorTheme.AMBER),
-                    ColorPreset(stringResource(R.string.color_plum), Color(0xFF8C527A), ColorTheme.PLUM),
+                    ColorPreset(stringResource(R.string.color_cyan_teal), CYAN_TEAL, ColorTheme.CYAN_TEAL),
+                    ColorPreset(stringResource(R.string.color_terracotta), TERRACOTTA, ColorTheme.TERRACOTTA),
+                    ColorPreset(stringResource(R.string.color_iris), IRIS, ColorTheme.IRIS),
+                    ColorPreset(stringResource(R.string.color_oatmeal), OATMEAL, ColorTheme.OATMEAL),
+                    ColorPreset(stringResource(R.string.color_crimson), CRIMSON, ColorTheme.CRIMSON),
+                    ColorPreset(stringResource(R.string.color_mint), MINT, ColorTheme.MINT),
+                    ColorPreset(stringResource(R.string.color_amber), AMBER, ColorTheme.AMBER),
+                    ColorPreset(stringResource(R.string.color_plum), PLUM, ColorTheme.PLUM),
+                    ColorPreset(stringResource(R.string.color_walnut), WALNUT, ColorTheme.WALNUT),
                     ColorPreset(
                         stringResource(R.string.color_custom),
                         customSeedColor,
@@ -249,39 +267,56 @@ fun AppearanceScreenContent(
                     ),
                 )
 
+                val regularPresets = colorPresets.filter { !it.isCustom }
+                val customPreset = colorPresets.find { it.isCustom }
+
                 Surface(
-                    color = ListItemDefaults.segmentedColors().containerColor,
+                    color = SoloShelfTheme.colorScheme.surfaceContainerHighest,
                     shape = MaterialTheme.shapes.extraLarge,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        val rows = colorPresets.chunked(3)
-                        rows.forEachIndexed { rowIndex, rowItems ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                rowItems.forEach { preset ->
-                                    val isSelected = colorTheme == preset.identifier
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            maxItemsInEachRow = 5,
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            regularPresets.forEach { preset ->
+                                val isSelected = colorTheme == preset.identifier
+                                ColorThemeItem(
+                                    preset = preset,
+                                    isSelected = isSelected,
+                                    onClick = {
+                                        onColorThemeChange(preset.identifier)
+                                        if (preset.identifier == ColorTheme.MONO) {
+                                            onPaletteStyleChange(PaletteStyle.Monochrome)
+                                        } else if (paletteStyle == PaletteStyle.Monochrome) {
+                                            onPaletteStyleChange(PaletteStyle.Vibrant)
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        }
 
-                                    ColorThemeItem(
-                                        preset = preset,
-                                        isSelected = isSelected,
-                                        onClick = {
-                                            onColorThemeChange(preset.identifier)
-                                            if (preset.identifier == ColorTheme.MONO) {
-                                                onPaletteStyleChange(PaletteStyle.Monochrome)
-                                            } else if (paletteStyle == PaletteStyle.Monochrome) {
-                                                onPaletteStyleChange(PaletteStyle.Vibrant)
-                                            }
-                                        },
-                                        modifier = Modifier.weight(1f),
-                                    )
-                                }
-                            }
-                            if (rowIndex < rows.size - 1) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
+                        if (customPreset != null) {
+                            val isSelected = colorTheme == customPreset.identifier
+                            ColorThemeItem(
+                                preset = customPreset,
+                                isSelected = isSelected,
+                                isCustom = true,
+                                onClick = {
+                                    onColorThemeChange(customPreset.identifier)
+                                    if (paletteStyle == PaletteStyle.Monochrome) {
+                                        onPaletteStyleChange(PaletteStyle.Vibrant)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                     }
                 }
@@ -293,9 +328,12 @@ fun AppearanceScreenContent(
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
+            }
 
+            if (themeMode == ThemeMode.CUSTOM && colorTheme != ColorTheme.MONO) {
                 PaletteStyleSection(
                     paletteStyle = paletteStyle,
+                    colorTheme = colorTheme,
                     onPaletteStyleChange = onPaletteStyleChange,
                 )
             }
@@ -312,57 +350,66 @@ fun AppearanceScreenContent(
 @Composable
 fun PaletteStyleSection(
     paletteStyle: PaletteStyle,
+    colorTheme: ColorTheme,
     onPaletteStyleChange: (PaletteStyle) -> Unit,
 ) {
-    SettingsSectionHeader(title = stringResource(R.string.palette_style))
+    Column {
+        SettingsSectionHeader(title = stringResource(R.string.palette_style))
 
-    Column(
-        modifier = Modifier.fillMaxWidth().clip(
-            shape = MaterialTheme.shapes.extraLarge,
-        ),
-        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
-    ) {
-        val styles = listOf(
-            Triple(
-                stringResource(R.string.palette_tonal_spot),
-                stringResource(R.string.palette_tonal_spot_desc),
-                PaletteStyle.TonalSpot,
-            ),
-            Triple(
-                stringResource(R.string.palette_neutral),
-                stringResource(R.string.palette_neutral_desc),
-                PaletteStyle.Neutral,
-            ),
-            Triple(
-                stringResource(R.string.palette_vibrant),
-                stringResource(R.string.palette_vibrant_desc),
-                PaletteStyle.Vibrant,
-            ),
-            Triple(
-                stringResource(R.string.palette_expressive),
-                stringResource(R.string.palette_expressive_desc),
-                PaletteStyle.Expressive,
-            ),
-            Triple(
-                stringResource(R.string.palette_monochrome),
-                stringResource(R.string.palette_monochrome_desc),
-                PaletteStyle.Monochrome,
-            ),
-        )
-
-        styles.forEachIndexed { index, (title, desc, style) ->
-            SoloShelfSegmentedListItem(
-                headlineText = title,
-                supportingText = desc,
-                shapes = ListItemDefaults.segmentedShapes(index, styles.size),
-                leadingContent = {
-                    RadioButton(
-                        selected = paletteStyle == style,
-                        onClick = null,
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(
+                    shape = MaterialTheme.shapes.extraLarge,
+                ),
+            verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
+        ) {
+            val styles = listOfNotNull(
+                Triple(
+                    stringResource(R.string.palette_tonal_spot),
+                    stringResource(R.string.palette_tonal_spot_desc),
+                    PaletteStyle.TonalSpot,
+                ),
+                Triple(
+                    stringResource(R.string.palette_neutral),
+                    stringResource(R.string.palette_neutral_desc),
+                    PaletteStyle.Neutral,
+                ),
+                Triple(
+                    stringResource(R.string.palette_vibrant),
+                    stringResource(R.string.palette_vibrant_desc),
+                    PaletteStyle.Vibrant,
+                ),
+                Triple(
+                    stringResource(R.string.palette_expressive),
+                    stringResource(R.string.palette_expressive_desc),
+                    PaletteStyle.Expressive,
+                ),
+                if (colorTheme == ColorTheme.CUSTOM) {
+                    Triple(
+                        stringResource(R.string.palette_monochrome),
+                        stringResource(R.string.palette_monochrome_desc),
+                        PaletteStyle.Monochrome,
                     )
+                } else {
+                    null
                 },
-                onClick = { onPaletteStyleChange(style) },
             )
+
+            styles.forEachIndexed { index, (title, desc, style) ->
+                SoloShelfSegmentedListItem(
+                    headlineText = title,
+                    supportingText = desc,
+                    shapes = ListItemDefaults.segmentedShapes(index, styles.size),
+                    leadingContent = {
+                        RadioButton(
+                            selected = paletteStyle == style,
+                            onClick = null,
+                        )
+                    },
+                    onClick = { onPaletteStyleChange(style) },
+                )
+            }
         }
     }
 }
@@ -382,13 +429,16 @@ private fun CustomColorPicker(
                 .fillMaxWidth()
                 .clip(shape = MaterialTheme.shapes.extraLarge)
                 .background(
-                    color = ListItemDefaults.segmentedColors().containerColor,
+                    color = SoloShelfTheme.colorScheme.surfaceContainerHighest,
                 ).padding(16.dp),
         ) {
             SaturationValueArea(
                 currentColor = customSeedColor,
                 onColorChange = onCustomSeedColorChange,
-                modifier = Modifier.fillMaxWidth().height(160.dp).clip(MaterialTheme.shapes.large),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .clip(MaterialTheme.shapes.large),
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -452,7 +502,7 @@ private fun HexEntry(
     }
 
     Surface(
-        color = SoloShelfTheme.colorScheme.surface,
+        color = SoloShelfTheme.colorScheme.surfaceContainer,
         shape = CircleShape,
         modifier = modifier,
     ) {
@@ -582,50 +632,72 @@ private fun SaturationValueArea(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ColorThemeItem(
+    modifier: Modifier = Modifier,
     preset: ColorPreset,
     isSelected: Boolean,
+    isCustom: Boolean = false,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    Surface(
-        onClick = onClick,
-        color = if (isSelected) {
-            SoloShelfTheme.colorScheme.surfaceContainerHigh
-        } else {
-            SoloShelfTheme.colorScheme.surfaceContainerHigh
-        },
-        shape = MaterialTheme.shapes.extraLarge,
-        modifier = modifier,
-    ) {
-        Row(
-            modifier = Modifier.padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    if (isCustom) {
+        Surface(
+            onClick = onClick,
+            color = if (isSelected) {
+                SoloShelfTheme.colorScheme.surfaceContainer
+            } else {
+                SoloShelfTheme.colorScheme.surfaceContainer
+            },
+            shape = MaterialTheme.shapes.extraLarge,
+            modifier = modifier,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(preset.color)
-                    .border(1.dp, SoloShelfTheme.colorScheme.outlineVariant, CircleShape),
-                contentAlignment = Alignment.Center,
+            Row(
+                modifier = Modifier.padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Rounded.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = if (preset.color.luminance() > 0.5f) Color.Black else Color.White,
-                    )
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(if (isSelected) MaterialShapes.Clover8Leaf.toShape() else CircleShape)
+                        .background(preset.color),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (isSelected) {
+                        Icon(
+                            imageVector = Icons.Rounded.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (preset.color.luminance() > 0.5f) Color.Black else Color.White,
+                        )
+                    }
                 }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = preset.label,
+                    style = SoloShelfTheme.typography.labelLarge,
+                    maxLines = 1,
+                )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = preset.label,
-                style = SoloShelfTheme.typography.labelLarge,
-                maxLines = 1,
-            )
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(if (isSelected) MaterialShapes.Clover8Leaf.toShape() else CircleShape)
+                .clickable(onClick = onClick)
+                .background(preset.color)
+                .border(1.dp, SoloShelfTheme.colorScheme.outlineVariant, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Rounded.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = if (preset.color.luminance() > 0.5f) Color.Black else Color.White,
+                )
+            }
         }
     }
 }
@@ -643,14 +715,14 @@ private fun Color.luminance(): Float = 0.2126f * red + 0.7152f * green + 0.0722f
 @Composable
 private fun AppearanceScreenPreview() {
     SoloShelfTheme(
-        colorTheme = ColorTheme.MONO,
+        colorTheme = ColorTheme.CYAN_TEAL,
         paletteStyle = PaletteStyle.Vibrant,
         amoledBlack = false,
     ) {
         AppearanceScreenContent(
             themePreference = AppTheme.AUTO,
             themeMode = ThemeMode.CUSTOM,
-            colorTheme = ColorTheme.MONO,
+            colorTheme = ColorTheme.CYAN_TEAL,
             amoledBlack = false,
             customSeedColor = Color(0xFF3B82F6),
             paletteStyle = PaletteStyle.Vibrant,
@@ -673,7 +745,9 @@ private fun CustomColorPickerPreview() {
             CustomColorPicker(
                 customSeedColor = Color(0xFFFFFFFF),
                 onCustomSeedColorChange = {},
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
             )
         }
     }

@@ -13,7 +13,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -27,6 +26,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -90,14 +90,16 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.media3.common.util.UnstableApi
 import coil3.compose.AsyncImage
 import com.kimothorick.soloshelf.R
 import com.kimothorick.soloshelf.data.models.Book
 import com.kimothorick.soloshelf.data.models.BookAndProgress
+import com.kimothorick.soloshelf.data.models.ShelfWithBooks
+import com.kimothorick.soloshelf.ui.components.BookBottomSheet
 import com.kimothorick.soloshelf.ui.components.ChapterItem
 import com.kimothorick.soloshelf.ui.components.CircularIconButton
 import com.kimothorick.soloshelf.ui.components.CollapsingLayout
+import com.kimothorick.soloshelf.ui.components.DeleteBookDialog
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
 import com.kimothorick.soloshelf.ui.tooling.CombinedPreviews
 import com.kimothorick.soloshelf.ui.tooling.PreviewData
@@ -115,7 +117,6 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoField
 import java.util.Locale
 
-@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun BookDetails(
     bookId: Long,
@@ -125,6 +126,7 @@ fun BookDetails(
 ) {
     val bookAndProgress by viewModel.bookAndProgress.collectAsStateWithLifecycle()
     val tableOfContents by viewModel.tableOfContents.collectAsStateWithLifecycle()
+    val shelves by viewModel.shelves.collectAsStateWithLifecycle()
 
     LaunchedEffect(bookId) {
         viewModel.setBookId(bookId)
@@ -134,8 +136,16 @@ fun BookDetails(
         BookDetailsScreen(
             bookAndProgress = currentBookAndProgress,
             tableOfContents = tableOfContents,
+            shelves = shelves,
             onBack = onBack,
             onNavigateToReader = onNavigateToReader,
+            onDeleteBook = { viewModel.deleteBook(it) },
+            onAddBookToShelf = { bId, sId -> viewModel.addBookToShelf(bId, sId) },
+            onRemoveBookFromShelf = { bId, sId -> viewModel.removeBookFromShelf(bId, sId) },
+            onCreateShelf = { viewModel.createShelf(it) },
+            onFavoriteClick = { viewModel.toggleFavorite(currentBookAndProgress.book.bookId) },
+            onNotStartedClick = { viewModel.resetProgress(currentBookAndProgress.book.bookId) },
+            onMarkFinishedClick = { viewModel.markFinished(currentBookAndProgress.book.bookId) },
         )
     }
 }
@@ -148,6 +158,14 @@ private fun BookDetailsScreen(
     onBack: () -> Unit,
     onNavigateToReader: (Long) -> Unit,
     modifier: Modifier = Modifier,
+    shelves: List<ShelfWithBooks> = emptyList(),
+    onDeleteBook: (Long) -> Unit = {},
+    onAddBookToShelf: (Long, Long) -> Unit = { _, _ -> },
+    onRemoveBookFromShelf: (Long, Long) -> Unit = { _, _ -> },
+    onCreateShelf: (String) -> Unit = {},
+    onFavoriteClick: () -> Unit = {},
+    onNotStartedClick: () -> Unit = {},
+    onMarkFinishedClick: () -> Unit = {},
     fileSizeOverride: String? = null,
     modifiedDateOverride: String? = null,
 ) {
@@ -164,6 +182,21 @@ private fun BookDetailsScreen(
     val size = SplitButtonDefaults.MediumContainerHeight
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val totalBottomSpacing = size + bottomInset + 16.dp
+    var checked by rememberSaveable { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        DeleteBookDialog(
+            bookTitle = book.title,
+            coverPath = book.coverPath,
+            onConfirm = {
+                onDeleteBook(book.bookId)
+                showDeleteDialog = false
+                onBack()
+            },
+            onDismiss = { showDeleteDialog = false },
+        )
+    }
 
     Scaffold(
         modifier = modifier,
@@ -249,7 +282,7 @@ private fun BookDetailsScreen(
                                     text = {
                                         Text(
                                             text = title,
-                                            style = MaterialTheme.typography.titleSmall,
+                                            style = SoloShelfTheme.typography.titleSmall,
                                             fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Medium,
                                         )
                                     },
@@ -269,7 +302,6 @@ private fun BookDetailsScreen(
                                         fileSizeOverride = fileSizeOverride,
                                         modifiedDateOverride = modifiedDateOverride,
                                         bottomPadding = totalBottomSpacing,
-                                        // modifier = Modifier.padding(top = 16.dp),
                                     )
                                 }
 
@@ -281,8 +313,8 @@ private fun BookDetailsScreen(
                                         ) {
                                             Text(
                                                 text = stringResource(R.string.no_contents_available),
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                style = SoloShelfTheme.typography.bodyMedium,
+                                                color = SoloShelfTheme.colorScheme.onSurfaceVariant,
                                             )
                                         }
                                     } else {
@@ -296,7 +328,7 @@ private fun BookDetailsScreen(
                                                 ChapterItem(link = link)
                                                 HorizontalDivider(
                                                     thickness = 0.5.dp,
-                                                    color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                                    color = SoloShelfTheme.colorScheme.outlineVariant.copy(
                                                         alpha = 0.5f,
                                                     ),
                                                 )
@@ -319,86 +351,118 @@ private fun BookDetailsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .wrapContentHeight()
                     .align(Alignment.BottomCenter)
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f),
-                                MaterialTheme.colorScheme.surfaceContainer,
+                                SoloShelfTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f),
+                                SoloShelfTheme.colorScheme.surfaceContainer,
                             ),
                         ),
                     ).padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 4.dp),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.BottomCenter,
             ) {
-                SplitButtonLayout(
-                    leadingButton = {
-                        SplitButtonDefaults.TonalLeadingButton(
-                            onClick = {
-                                onNavigateToReader(book.bookId)
-                            },
-                            modifier = Modifier.heightIn(size),
-                            shapes = SplitButtonDefaults.leadingButtonShapesFor(size),
-                            contentPadding = SplitButtonDefaults.leadingButtonContentPaddingFor(size),
-                        ) {
-                            Text(
-                                text = progressText,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 12.dp),
-                            )
-                        }
-                    },
-                    trailingButton = {
-                        val tooltipState = rememberTooltipState()
-                        val description = "Toggle Button"
-                        var checked by remember { mutableStateOf(false) }
-                        TooltipBox(
-                            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
-                                positioning = TooltipAnchorPosition.Above,
-                            ),
-                            tooltip = {
-                                PlainTooltip {
-                                    Text(stringResource(R.string.add_to_collection))
-                                }
-                            },
-                            state = tooltipState,
-                        ) {
-                            SplitButtonDefaults.TonalTrailingButton(
-                                checked = checked,
-                                onCheckedChange = { checked = it },
-                                modifier =
-                                    Modifier.heightIn(size).semantics {
-                                        stateDescription = if (checked) "Expanded" else "Collapsed"
-                                        contentDescription = description
-                                    },
-                                shapes = SplitButtonDefaults.trailingButtonShapesFor(size),
-                                contentPadding = SplitButtonDefaults.trailingButtonContentPaddingFor(size),
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    BookBottomSheet(
+                        expanded = checked,
+                        bookId = book.bookId,
+                        title = book.title,
+                        author = book.author,
+                        coverPath = book.coverPath,
+                        progressPercentage = progress?.readPercentage ?: 0f,
+                        onDismiss = { checked = false },
+                        onDelete = { showDeleteDialog = true },
+                        shelves = shelves,
+                        onToggleShelf = { shelfId, shouldAdd ->
+                            if (shouldAdd) {
+                                onAddBookToShelf(book.bookId, shelfId)
+                            } else {
+                                onRemoveBookFromShelf(book.bookId, shelfId)
+                            }
+                        },
+                        onCreateShelf = { name ->
+                            onCreateShelf(name)
+                        },
+                        onFavoriteClick = onFavoriteClick,
+                        onNotStartedClick = onNotStartedClick,
+                        onMarkFinishedClick = onMarkFinishedClick,
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    SplitButtonLayout(
+                        leadingButton = {
+                            SplitButtonDefaults.TonalLeadingButton(
+                                onClick = {
+                                    onNavigateToReader(book.bookId)
+                                },
+                                modifier = Modifier.heightIn(size),
+                                shapes = SplitButtonDefaults.leadingButtonShapesFor(size),
+                                contentPadding = SplitButtonDefaults.leadingButtonContentPaddingFor(size),
                             ) {
-                                val rotation: Float by
-                                    animateFloatAsState(
-                                        targetValue = if (checked) 180f else 0f,
-                                        label = "Trailing Icon Rotation",
-                                    )
-                                Icon(
-                                    Icons.Rounded.KeyboardArrowUp,
-                                    modifier =
-                                        Modifier
-                                            .size(SplitButtonDefaults.trailingButtonIconSizeFor(size))
-                                            .graphicsLayer { this.rotationZ = rotation },
-                                    contentDescription = "Localized description",
+                                Text(
+                                    text = progressText,
+                                    style = SoloShelfTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 12.dp),
                                 )
                             }
-                        }
-                    },
-                    spacing = 2.dp,
-                )
+                        },
+                        trailingButton = {
+                            val tooltipState = rememberTooltipState()
+                            val description = "Toggle Button"
+                            TooltipBox(
+                                positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                                    positioning = TooltipAnchorPosition.Above,
+                                ),
+                                tooltip = {
+                                    PlainTooltip {
+                                        Text(stringResource(R.string.add_to_shelf))
+                                    }
+                                },
+                                state = tooltipState,
+                            ) {
+                                SplitButtonDefaults.TonalTrailingButton(
+                                    checked = checked,
+                                    onCheckedChange = { checked = it },
+                                    modifier =
+                                        Modifier
+                                            .heightIn(size)
+                                            .semantics {
+                                                stateDescription = if (checked) "Expanded" else "Collapsed"
+                                                contentDescription = description
+                                            },
+                                    shapes = SplitButtonDefaults.trailingButtonShapesFor(size),
+                                    contentPadding = SplitButtonDefaults.trailingButtonContentPaddingFor(size),
+                                ) {
+                                    val rotation: Float by
+                                        animateFloatAsState(
+                                            targetValue = if (checked) 180f else 0f,
+                                            label = "Trailing Icon Rotation",
+                                        )
+                                    Icon(
+                                        Icons.Rounded.KeyboardArrowUp,
+                                        modifier =
+                                            Modifier
+                                                .size(SplitButtonDefaults.trailingButtonIconSizeFor(size))
+                                                .graphicsLayer { this.rotationZ = rotation },
+                                        contentDescription = "Localized description",
+                                    )
+                                }
+                            }
+                        },
+                        spacing = 2.dp,
+                    )
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BookDetailsContent(
     bookAndProgress: BookAndProgress,
@@ -411,28 +475,30 @@ private fun BookDetailsContent(
 
     var isDescriptionTextExpanded by rememberSaveable { mutableStateOf(false) }
     Column(
-        modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.Start,
     ) {
-        // Title and Author
+        Spacer(Modifier.height(16.dp))
         Text(
             text = book.title,
-            style = MaterialTheme.typography.titleLarge,
+            style = SoloShelfTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = SoloShelfTheme.colorScheme.onSurface,
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = book.author.ifBlank {
                 stringResource(R.string.unknown_author)
             },
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = SoloShelfTheme.typography.bodyLarge,
+            color = SoloShelfTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Synopsis
         SectionHeader(stringResource(R.string.synopsis))
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -448,9 +514,9 @@ private fun BookDetailsContent(
         ) {
             Text(
                 text = AnnotatedString.fromHtml(synopsis.replace("\n", "<br/>")),
-                style = MaterialTheme.typography.bodyMedium,
+                style = SoloShelfTheme.typography.bodyMedium,
                 lineHeight = 20.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                color = SoloShelfTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 textAlign = TextAlign.Start,
                 maxLines = if (isDescriptionTextExpanded) Int.MAX_VALUE else 10,
                 overflow = TextOverflow.Ellipsis,
@@ -460,8 +526,8 @@ private fun BookDetailsContent(
             if (synopsis != stringResource(R.string.no_synopsis_available) && synopsis.length > 300) {
                 Text(
                     text = if (isDescriptionTextExpanded) "Show less" else "Show more",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = SoloShelfTheme.typography.bodySmall,
+                    color = SoloShelfTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .padding(top = 8.dp)
@@ -472,13 +538,11 @@ private fun BookDetailsContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Grid Details (Publisher, Language, Year, Identifier)
         SectionHeader(stringResource(R.string.details))
         Spacer(modifier = Modifier.height(8.dp))
         MetadataGrid(bookAndProgress)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // File Details
         SectionHeader(stringResource(R.string.file_details))
         Spacer(modifier = Modifier.height(12.dp))
         FileDetailsCard(
@@ -490,7 +554,6 @@ private fun BookDetailsContent(
         if (book.genres.isNotEmpty()) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Genres
             SectionHeader(stringResource(R.string.genres))
             Spacer(modifier = Modifier.height(8.dp))
             FlowRow(
@@ -500,11 +563,11 @@ private fun BookDetailsContent(
                 book.genres.forEach { genre ->
                     SuggestionChip(
                         onClick = { },
-                        label = { Text(text = genre, style = MaterialTheme.typography.labelMedium) },
+                        label = { Text(text = genre, style = SoloShelfTheme.typography.labelMedium) },
                         shape = RoundedCornerShape(12.dp),
                         colors = SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            containerColor = SoloShelfTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            labelColor = SoloShelfTheme.colorScheme.onSurfaceVariant,
                         ),
                         border = null,
                     )
@@ -526,12 +589,13 @@ private fun MetadataGrid(
     }
 
     val pageCount = bookAndProgress.ebookDetails?.pageCount ?: 0
-    val pagesValue = NumberUtils.formatLocalizedInteger(pageCount)
+    val pagesValue =
+        if (book.format == "EPUB") stringResource(R.string.reflowable) else NumberUtils.formatLocalizedInteger(pageCount)
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             MetadataGridItem(
-                label = stringResource(R.string.pages),
+                label = if (book.format == "EPUB") stringResource(R.string.layout) else stringResource(R.string.pages),
                 value = pagesValue,
                 modifier = Modifier.weight(1f),
             )
@@ -573,21 +637,21 @@ private fun MetadataGridItem(
     Column(
         modifier = modifier
             .clip(shape = MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .background(color = SoloShelfTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
             .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
         Text(
             text = label.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
+            style = SoloShelfTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            color = SoloShelfTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium,
+            style = SoloShelfTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = SoloShelfTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -600,7 +664,7 @@ private fun SectionHeader(
 ) {
     Text(
         text = title,
-        style = MaterialTheme.typography.titleSmall,
+        style = SoloShelfTheme.typography.titleSmall,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Start,
@@ -643,7 +707,7 @@ private fun FileDetailsCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .background(color = SoloShelfTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -677,7 +741,7 @@ private fun FileDetailsCard(
             )
         }
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        HorizontalDivider(color = SoloShelfTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
         FileDetailItem(
             icon = R.drawable.ic_folder,
@@ -703,20 +767,20 @@ private fun FileDetailItem(
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
+            tint = SoloShelfTheme.colorScheme.primary,
             modifier = Modifier.size(20.dp),
         )
         Column {
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                style = SoloShelfTheme.typography.labelSmall,
+                color = SoloShelfTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 fontWeight = FontWeight.Bold,
             )
             Text(
                 text = value,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = SoloShelfTheme.typography.bodySmall,
+                color = SoloShelfTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Medium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,

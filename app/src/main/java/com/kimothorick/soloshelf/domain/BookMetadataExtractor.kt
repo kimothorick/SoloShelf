@@ -3,7 +3,6 @@ package com.kimothorick.soloshelf.domain
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
-import androidx.media3.common.util.UnstableApi
 import com.kimothorick.soloshelf.data.models.Book
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +21,6 @@ import javax.inject.Inject
 /**
  * Service to extract and unify metadata from EPUB and PDF books using Readium.
  */
-@UnstableApi
 class BookMetadataExtractor @Inject constructor(
     private val assetRetriever: AssetRetriever,
     private val publicationRetriever: PublicationRetriever,

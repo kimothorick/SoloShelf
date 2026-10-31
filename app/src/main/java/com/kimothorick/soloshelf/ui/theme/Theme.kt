@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import com.kimothorick.soloshelf.data.preferences.ColorTheme
 import com.kimothorick.soloshelf.data.preferences.ThemeMode
 import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 
 @Immutable
@@ -135,6 +134,7 @@ fun SoloShelfTheme(
                 ColorTheme.MINT -> MINT
                 ColorTheme.AMBER -> AMBER
                 ColorTheme.PLUM -> PLUM
+                ColorTheme.WALNUT -> WALNUT
                 ColorTheme.CUSTOM -> customSeedColor
             }
         }
@@ -150,12 +150,12 @@ fun SoloShelfTheme(
         seedColor = animatedSeedColor,
         isDark = darkTheme,
         isAmoled = darkTheme && amoledBlack,
-        style = when {
-            colorTheme == ColorTheme.MONO -> {
+        style = when (themeMode) {
+            ThemeMode.CUSTOM if colorTheme == ColorTheme.MONO -> {
                 PaletteStyle.Monochrome
             }
 
-            themeMode == ThemeMode.MATERIAL_YOU -> {
+            ThemeMode.MATERIAL_YOU -> {
                 PaletteStyle.Vibrant
             }
 
