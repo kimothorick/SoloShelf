@@ -244,7 +244,7 @@ private fun LazyListScope.aboutAppSection(
                     AboutAppGridButton(
                         title = stringResource(R.string.developer_credits),
                         iconRes = R.drawable.ic_info,
-                        onClick = onNavigateToEverythingElse,
+                        onClick = onNavigateToDeveloperCredits,
                         modifier = Modifier.weight(1f),
                     )
                 }
