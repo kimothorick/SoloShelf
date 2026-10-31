@@ -3,7 +3,8 @@
 > [!IMPORTANT]
 > 
 > This project is currently in early active development.
-> Features may be incomplete, and breaking changes are expected. Data structure is subject to change.
+> Features may be incomplete, some buttons may not work, designs may not be finalized, and breaking changes are expected etc. Data structure is subject to change.
+> The current branch is set to "Development" for better tracking incase a user wants to see what I am working on. In the future, this will be reverted back to "main" for releases.
 
 **SoloShelf** is a private, offline-first ebook reader for Android. It focuses on simplicity, privacy, and ownership—your library lives on your device, not in the cloud.
 
