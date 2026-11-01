@@ -105,6 +105,5 @@ private fun ChapterItemPreview() {
                 ChapterItem(link = PreviewData.sampleLinkWithChildren)
             }
         }
-
     }
 }

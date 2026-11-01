@@ -115,41 +115,44 @@ class LibraryScanner @Inject constructor(
             val authority = treeUri.authority ?: "com.android.externalstorage.documents"
             Log.d("LibraryScanner", "Scanning with authority: $authority, rootDocId: $rootDocId")
 
-            fun traverseDoc(docId: String) {
+            fun traverseDoc(
+                docId: String,
+            ) {
                 val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, docId)
-                context.contentResolver.query(
-                    childrenUri,
-                    arrayOf(
-                        DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-                        DocumentsContract.Document.COLUMN_MIME_TYPE,
-                        DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-                    ),
-                    null,
-                    null,
-                    null,
-                )?.use { cursor ->
-                    val idCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
-                    val mimeCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
-                    val nameCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+                context.contentResolver
+                    .query(
+                        childrenUri,
+                        arrayOf(
+                            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                            DocumentsContract.Document.COLUMN_MIME_TYPE,
+                            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                        ),
+                        null,
+                        null,
+                        null,
+                    )?.use { cursor ->
+                        val idCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+                        val mimeCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
+                        val nameCol = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
 
-                    while (cursor.moveToNext()) {
-                        val childDocId = if (idCol != -1) cursor.getString(idCol) else continue
-                        val mimeType = if (mimeCol != -1) cursor.getString(mimeCol) else null
-                        val displayName = if (nameCol != -1) cursor.getString(nameCol) else ""
+                        while (cursor.moveToNext()) {
+                            val childDocId = if (idCol != -1) cursor.getString(idCol) else continue
+                            val mimeType = if (mimeCol != -1) cursor.getString(mimeCol) else null
+                            val displayName = if (nameCol != -1) cursor.getString(nameCol) else ""
 
-                        val childUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, childDocId)
+                            val childUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, childDocId)
 
-                        if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-                            traverseDoc(childDocId)
-                        } else {
-                            val name = displayName.lowercase()
-                            Log.d("LibraryScanner", "Found file: $displayName with URI: $childUri")
-                            if (name.endsWith(".epub") || name.endsWith(".pdf") || name.endsWith(".m4b") || name.endsWith(".zip")) {
-                                bookUris.add(childUri)
+                            if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
+                                traverseDoc(childDocId)
+                            } else {
+                                val name = displayName.lowercase()
+                                Log.d("LibraryScanner", "Found file: $displayName with URI: $childUri")
+                                if (name.endsWith(".epub") || name.endsWith(".pdf") || name.endsWith(".m4b") || name.endsWith(".zip")) {
+                                    bookUris.add(childUri)
+                                }
                             }
                         }
                     }
-                }
             }
 
             traverseDoc(rootDocId)
@@ -157,7 +160,9 @@ class LibraryScanner @Inject constructor(
             Log.e("LibraryScanner", "Error querying tree URI $treeUri with DocumentsContract, falling back to DocumentFile", e)
             val docFile = DocumentFile.fromTreeUri(context, treeUri)
             if (docFile != null) {
-                fun traverse(file: DocumentFile) {
+                fun traverse(
+                    file: DocumentFile,
+                ) {
                     if (file.isDirectory) {
                         file.listFiles().forEach { traverse(it) }
                     } else if (file.isFile) {
@@ -194,7 +199,8 @@ class LibraryScanner @Inject constructor(
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION,
                 )
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            }
         }
 
         enqueueBooks(uris, showProgress = showProgress)
@@ -358,7 +364,8 @@ class LibraryScanner @Inject constructor(
             return ImportStatus.FAILED
         }
 
-        val format = asset.format.fileExtension.value.uppercase()
+        val format = asset.format.fileExtension.value
+            .uppercase()
         val initialTitle = uri.lastPathSegment
             ?.substringAfterLast('/')
             ?.substringAfterLast(':')

@@ -34,47 +34,46 @@ class SettingsViewModel @Inject constructor(
     private val libraryScanner: LibraryScanner,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
-
     val themePreference: StateFlow<AppTheme> = userPreferencesRepository.themePreference
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = AppTheme.AUTO
+            initialValue = AppTheme.AUTO,
         )
 
     val themeMode: StateFlow<ThemeMode> = userPreferencesRepository.themeMode
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ThemeMode.MATERIAL_YOU
+            initialValue = ThemeMode.MATERIAL_YOU,
         )
 
     val colorTheme: StateFlow<ColorTheme> = userPreferencesRepository.colorTheme
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ColorTheme.MONO
+            initialValue = ColorTheme.MONO,
         )
 
     val amoledBlack: StateFlow<Boolean> = userPreferencesRepository.amoledBlack
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = false
+            initialValue = false,
         )
 
     val autoScanOnStartup: StateFlow<Boolean> = userPreferencesRepository.autoScanOnStartup
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = true
+            initialValue = true,
         )
 
     val libraryFolders: StateFlow<List<LibraryFolder>> = userPreferencesRepository.libraryFolders
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
+            initialValue = emptyList(),
         )
 
     private val _cacheSize = MutableStateFlow("0kb")
@@ -88,14 +87,14 @@ class SettingsViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = Color.Blue
+            initialValue = Color.Blue,
         )
 
     val paletteStyle: StateFlow<PaletteStyle> = userPreferencesRepository.paletteStyle
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = PaletteStyle.TonalSpot
+            initialValue = PaletteStyle.TonalSpot,
         )
 
     @Deprecated("Use themeMode instead")
@@ -103,40 +102,54 @@ class SettingsViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = true
+            initialValue = true,
         )
 
-    fun setTheme(theme: AppTheme) {
+    fun setTheme(
+        theme: AppTheme,
+    ) {
         viewModelScope.launch {
             userPreferencesRepository.updateThemePreference(theme)
         }
     }
 
-    fun setThemeMode(mode: ThemeMode) {
+    fun setThemeMode(
+        mode: ThemeMode,
+    ) {
         viewModelScope.launch {
             userPreferencesRepository.updateThemeMode(mode)
         }
     }
 
-    fun setColorTheme(theme: ColorTheme) {
+    fun setColorTheme(
+        theme: ColorTheme,
+    ) {
         viewModelScope.launch {
             userPreferencesRepository.updateColorTheme(theme)
         }
     }
 
-    fun setAmoledBlack(enabled: Boolean) {
+    fun setAmoledBlack(
+        enabled: Boolean,
+    ) {
         viewModelScope.launch {
             userPreferencesRepository.updateAmoledBlack(enabled)
         }
     }
 
-    fun setAutoScanOnStartup(enabled: Boolean) {
+    fun setAutoScanOnStartup(
+        enabled: Boolean,
+    ) {
         viewModelScope.launch {
             userPreferencesRepository.updateAutoScanOnStartup(enabled)
         }
     }
 
-    fun addLibraryFolder(uri: String, name: String, dateAdded: String) {
+    fun addLibraryFolder(
+        uri: String,
+        name: String,
+        dateAdded: String,
+    ) {
         viewModelScope.launch {
             val current = libraryFolders.value
             if (current.none { it.uri == uri }) {
@@ -146,7 +159,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun removeLibraryFolder(uri: String) {
+    fun removeLibraryFolder(
+        uri: String,
+    ) {
         viewModelScope.launch {
             val currentFolders = libraryFolders.value
             userPreferencesRepository.updateLibraryFolders(currentFolders.filter { it.uri != uri })
@@ -165,13 +180,24 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun belongsToFolder(bookFilePath: String, folderUriString: String): Boolean {
+    private fun belongsToFolder(
+        bookFilePath: String,
+        folderUriString: String,
+    ): Boolean {
         try {
             val bookUri = Uri.parse(bookFilePath)
             val folderUri = Uri.parse(folderUriString)
 
-            val folderTreeId = try { DocumentsContract.getTreeDocumentId(folderUri) } catch (_: Exception) { "" }
-            val bookDocId = try { DocumentsContract.getDocumentId(bookUri) } catch (_: Exception) { "" }
+            val folderTreeId = try {
+                DocumentsContract.getTreeDocumentId(folderUri)
+            } catch (_: Exception) {
+                ""
+            }
+            val bookDocId = try {
+                DocumentsContract.getDocumentId(bookUri)
+            } catch (_: Exception) {
+                ""
+            }
 
             if (folderTreeId.isNotEmpty() && bookDocId.isNotEmpty()) {
                 if (bookDocId.startsWith(folderTreeId)) {
@@ -211,7 +237,9 @@ class SettingsViewModel @Inject constructor(
         return formatBytes(bytes)
     }
 
-    private fun getDirectorySize(file: File): Long {
+    private fun getDirectorySize(
+        file: File,
+    ): Long {
         if (file.isDirectory) {
             val files = file.listFiles() ?: return 0
             return files.sumOf { getDirectorySize(it) }
@@ -220,7 +248,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun deleteRecursive(file: File) {
+    private fun deleteRecursive(
+        file: File,
+    ) {
         if (file.isDirectory) {
             file.listFiles()?.forEach { deleteRecursive(it) }
         }
@@ -229,7 +259,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun formatBytes(bytes: Long): String {
+    private fun formatBytes(
+        bytes: Long,
+    ): String {
         val mb = bytes / (1024.0 * 1024.0)
         return if (mb < 1.0) {
             val kb = bytes / 1024.0
@@ -239,20 +271,26 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setCustomSeedColor(color: Color) {
+    fun setCustomSeedColor(
+        color: Color,
+    ) {
         viewModelScope.launch {
             userPreferencesRepository.updateCustomSeedColor(color)
         }
     }
 
-    fun setPaletteStyle(style: PaletteStyle) {
+    fun setPaletteStyle(
+        style: PaletteStyle,
+    ) {
         viewModelScope.launch {
             userPreferencesRepository.updatePaletteStyle(style)
         }
     }
 
     @Deprecated("Use setThemeMode instead")
-    fun setDynamicColor(enabled: Boolean) {
+    fun setDynamicColor(
+        enabled: Boolean,
+    ) {
         viewModelScope.launch {
             userPreferencesRepository.updateDynamicColor(enabled)
         }

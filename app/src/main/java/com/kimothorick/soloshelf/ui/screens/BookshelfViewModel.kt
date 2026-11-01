@@ -14,11 +14,11 @@ import javax.inject.Inject
 class BookshelfViewModel @Inject constructor(
     private val bookRepository: BookRepository,
 ) : ViewModel() {
-
-    val shelves: StateFlow<List<ShelfWithBooks>> = bookRepository.getShelvesWithBooks()
+    val shelves: StateFlow<List<ShelfWithBooks>> = bookRepository
+        .getShelvesWithBooks()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
+            initialValue = emptyList(),
         )
 }

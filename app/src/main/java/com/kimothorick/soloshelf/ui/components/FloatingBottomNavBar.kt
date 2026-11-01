@@ -64,7 +64,6 @@ fun FloatingBottomNavBar(
                     ),
                 ),
             ).padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 12.dp),
-
         contentAlignment = Alignment.Center,
     ) {
         Surface(

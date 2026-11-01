@@ -134,8 +134,7 @@ fun ToggleableButtonGroup(
                 width = 1.dp,
                 color = outlineColor,
                 shape = containerShape,
-            )
-            .height(52.dp)
+            ).height(52.dp)
             .padding(all = 4.dp)
             .drawBehind {
                 val itemCount = items.size

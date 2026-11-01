@@ -12,15 +12,15 @@ import androidx.room.PrimaryKey
             entity = Book::class,
             parentColumns = ["bookId"],
             childColumns = ["bookId"],
-            onDelete = ForeignKey.CASCADE
-        )
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
-    indices = [Index(value = ["bookId"])]
+    indices = [Index(value = ["bookId"])],
 )
 data class EbookDetails(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val bookId: Long,
     val pageCount: Int = 0,
-    val hasImages: Boolean = false
+    val hasImages: Boolean = false,
 )

@@ -31,8 +31,7 @@ class OnboardingViewModel
             userPreferencesRepository.isFirstLaunch
                 .map { isFirstLaunch ->
                     if (isFirstLaunch) OnboardingUiState.ShowOnboarding else OnboardingUiState.Completed
-                }
-                .stateIn(
+                }.stateIn(
                     scope = viewModelScope,
                     started = SharingStarted.WhileSubscribed(5_000),
                     initialValue = OnboardingUiState.Loading,

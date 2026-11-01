@@ -32,7 +32,6 @@ class LibraryViewModel @Inject constructor(
     private val repository: BookRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
 ) : ViewModel() {
-
     init {
         viewModelScope.launch {
             try {
@@ -61,7 +60,7 @@ class LibraryViewModel @Inject constructor(
                         lastReadLocatorJson = bookWithEbookDetails.progress?.lastPosition,
                         lastAccessed = bookWithEbookDetails.progress?.lastAccessed,
                         progressPercentage = bookWithEbookDetails.progress?.readPercentage ?: 0f,
-                        pageCount = bookWithEbookDetails.ebookDetails?.pageCount ?: 0
+                        pageCount = bookWithEbookDetails.ebookDetails?.pageCount ?: 0,
                     )
                 }
             }
@@ -70,37 +69,43 @@ class LibraryViewModel @Inject constructor(
     private val _isInitialLoadComplete = MutableStateFlow(false)
     val isInitialLoadComplete: StateFlow<Boolean> = _isInitialLoadComplete.asStateFlow()
 
-    val recentEbooks: StateFlow<ImmutableList<LibraryItem.Ebook>> = repository.getRecentEbooks().map { books ->
-        _isInitialLoadComplete.value = true
-        books.map { bookWithEbookDetails ->
-            val book = bookWithEbookDetails.book
-            LibraryItem.Ebook(
-                id = book.bookId,
-                title = book.title,
-                author = book.author,
-                coverPath = book.coverPath,
-                filePath = book.filePath,
-                mediaType = book.mediaType,
-                lastReadLocatorJson = bookWithEbookDetails.progress?.lastPosition,
-                lastAccessed = bookWithEbookDetails.progress?.lastAccessed,
-                progressPercentage = bookWithEbookDetails.progress?.readPercentage ?: 0f,
-                pageCount = bookWithEbookDetails.ebookDetails?.pageCount ?: 0
-            )
-        }.toImmutableList()
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = persistentListOf()
-    )
+    val recentEbooks: StateFlow<ImmutableList<LibraryItem.Ebook>> = repository
+        .getRecentEbooks()
+        .map { books ->
+            _isInitialLoadComplete.value = true
+            books
+                .map { bookWithEbookDetails ->
+                    val book = bookWithEbookDetails.book
+                    LibraryItem.Ebook(
+                        id = book.bookId,
+                        title = book.title,
+                        author = book.author,
+                        coverPath = book.coverPath,
+                        filePath = book.filePath,
+                        mediaType = book.mediaType,
+                        lastReadLocatorJson = bookWithEbookDetails.progress?.lastPosition,
+                        lastAccessed = bookWithEbookDetails.progress?.lastAccessed,
+                        progressPercentage = bookWithEbookDetails.progress?.readPercentage ?: 0f,
+                        pageCount = bookWithEbookDetails.ebookDetails?.pageCount ?: 0,
+                    )
+                }.toImmutableList()
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = persistentListOf(),
+        )
 
-    val shelves: StateFlow<List<ShelfWithBooks>> = repository.getShelvesWithBooks()
+    val shelves: StateFlow<List<ShelfWithBooks>> = repository
+        .getShelvesWithBooks()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
+            initialValue = emptyList(),
         )
 
-    fun deleteBook(bookId: Long) {
+    fun deleteBook(
+        bookId: Long,
+    ) {
         viewModelScope.launch {
             repository.getBookByIdOnce(bookId)?.let {
                 repository.deleteBook(it)
@@ -108,41 +113,55 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
-    fun addBookToShelf(bookId: Long, shelfId: Long) {
+    fun addBookToShelf(
+        bookId: Long,
+        shelfId: Long,
+    ) {
         viewModelScope.launch {
             repository.insertShelfBookCrossRef(
-                ShelfBookCrossRef(shelfId = shelfId, bookId = bookId)
+                ShelfBookCrossRef(shelfId = shelfId, bookId = bookId),
             )
         }
     }
 
-    fun removeBookFromShelf(bookId: Long, shelfId: Long) {
+    fun removeBookFromShelf(
+        bookId: Long,
+        shelfId: Long,
+    ) {
         viewModelScope.launch {
             repository.deleteShelfBookCrossRef(
-                ShelfBookCrossRef(shelfId = shelfId, bookId = bookId)
+                ShelfBookCrossRef(shelfId = shelfId, bookId = bookId),
             )
         }
     }
 
-    fun createShelf(name: String) {
+    fun createShelf(
+        name: String,
+    ) {
         viewModelScope.launch {
             repository.insertShelf(Shelf(name = name))
         }
     }
 
-    fun toggleFavorite(bookId: Long) {
+    fun toggleFavorite(
+        bookId: Long,
+    ) {
         viewModelScope.launch {
             repository.toggleFavorite(bookId)
         }
     }
 
-    fun resetProgress(bookId: Long) {
+    fun resetProgress(
+        bookId: Long,
+    ) {
         viewModelScope.launch {
             repository.resetProgress(bookId)
         }
     }
 
-    fun markFinished(bookId: Long) {
+    fun markFinished(
+        bookId: Long,
+    ) {
         viewModelScope.launch {
             repository.markFinished(bookId)
         }

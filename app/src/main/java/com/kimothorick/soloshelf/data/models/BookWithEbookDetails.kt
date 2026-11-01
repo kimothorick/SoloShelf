@@ -7,12 +7,12 @@ data class BookWithEbookDetails(
     @Embedded val book: Book,
     @Relation(
         parentColumn = "bookId",
-        entityColumn = "bookId"
+        entityColumn = "bookId",
     )
     val ebookDetails: EbookDetails?,
     @Relation(
         parentColumn = "bookId",
-        entityColumn = "bookId"
+        entityColumn = "bookId",
     )
-    val progress: ReadingProgress?
+    val progress: ReadingProgress?,
 )

@@ -8,12 +8,12 @@ import androidx.room.TypeConverters
 import com.kimothorick.soloshelf.data.daos.BookDao
 import com.kimothorick.soloshelf.data.models.Book
 import com.kimothorick.soloshelf.data.models.Bookmark
-import com.kimothorick.soloshelf.data.models.Shelf
-import com.kimothorick.soloshelf.data.models.ShelfBookCrossRef
+import com.kimothorick.soloshelf.data.models.EbookDetails
 import com.kimothorick.soloshelf.data.models.Highlight
 import com.kimothorick.soloshelf.data.models.Note
 import com.kimothorick.soloshelf.data.models.ReadingProgress
-import com.kimothorick.soloshelf.data.models.EbookDetails
+import com.kimothorick.soloshelf.data.models.Shelf
+import com.kimothorick.soloshelf.data.models.ShelfBookCrossRef
 
 @Database(
     entities = [
@@ -46,8 +46,7 @@ abstract class BookDatabase : RoomDatabase() {
                         context.applicationContext,
                         BookDatabase::class.java,
                         "soloshelf_database",
-                    )
-                    .fallbackToDestructiveMigration()
+                    ).fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

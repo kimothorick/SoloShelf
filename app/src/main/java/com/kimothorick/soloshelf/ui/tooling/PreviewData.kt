@@ -2,9 +2,9 @@ package com.kimothorick.soloshelf.ui.tooling
 
 import com.kimothorick.soloshelf.data.models.Book
 import com.kimothorick.soloshelf.data.models.BookAndProgress
+import com.kimothorick.soloshelf.data.models.ReadingProgress
 import com.kimothorick.soloshelf.data.models.Shelf
 import com.kimothorick.soloshelf.data.models.ShelfWithBooks
-import com.kimothorick.soloshelf.data.models.ReadingProgress
 import com.kimothorick.soloshelf.domain.models.LibraryItem
 import org.readium.r2.shared.publication.Link
 import org.readium.r2.shared.util.Url
@@ -12,7 +12,7 @@ import org.readium.r2.shared.util.Url
 object PreviewData {
     val sampleLink = Link(
         href = Url("chapter1")!!,
-        title = "Chapter 1: The Beginning"
+        title = "Chapter 1: The Beginning",
     )
 
     val sampleLinkWithChildren = Link(
@@ -20,14 +20,14 @@ object PreviewData {
         title = "Chapter 2: The Middle",
         children = listOf(
             Link(href = Url("chapter2.1")!!, title = "Section 2.1"),
-            Link(href = Url("chapter2.2")!!, title = "Section 2.2")
-        )
+            Link(href = Url("chapter2.2")!!, title = "Section 2.2"),
+        ),
     )
 
     val sampleToc = listOf(
         sampleLink,
         sampleLinkWithChildren,
-        Link(href = Url("chapter3")!!, title = "Chapter 3: The End")
+        Link(href = Url("chapter3")!!, title = "Chapter 3: The End"),
     )
 
     val sampleBook = Book(
@@ -65,7 +65,7 @@ object PreviewData {
             bookId = sampleBook.bookId,
             lastPosition = "10",
             readPercentage = 25f,
-            lastAccessed = System.currentTimeMillis()
+            lastAccessed = System.currentTimeMillis(),
         ),
         ebookDetails = null,
     )
@@ -77,7 +77,7 @@ object PreviewData {
                 bookId = index.toLong() + 2,
                 lastPosition = "0",
                 readPercentage = 10f * (index + 1),
-                lastAccessed = System.currentTimeMillis()
+                lastAccessed = System.currentTimeMillis(),
             ),
             ebookDetails = null,
         )

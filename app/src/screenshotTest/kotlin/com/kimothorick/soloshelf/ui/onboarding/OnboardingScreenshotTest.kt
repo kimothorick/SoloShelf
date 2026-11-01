@@ -6,7 +6,6 @@ import com.android.tools.screenshot.PreviewTest
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
 
 class OnboardingScreenshotTest {
-
     @PreviewTest
     @Preview(showSystemUi = true)
     @Composable

@@ -9,8 +9,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kimothorick.soloshelf.R
 import com.kimothorick.soloshelf.data.BookRepository
-import com.kimothorick.soloshelf.data.models.Shelf
 import com.kimothorick.soloshelf.data.models.LibraryFolder
+import com.kimothorick.soloshelf.data.models.Shelf
 import com.kimothorick.soloshelf.data.preferences.SortOrder
 import com.kimothorick.soloshelf.data.preferences.UserPreferencesRepository
 import com.kimothorick.soloshelf.domain.ImportState
@@ -44,7 +44,6 @@ class MainViewModel @Inject constructor(
     private val libraryScanner: LibraryScanner,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
-
     val sortOrder: StateFlow<SortOrder> = userPreferencesRepository.sortOrder.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -132,7 +131,8 @@ class MainViewModel @Inject constructor(
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
                 )
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            }
 
             val docFile = DocumentFile.fromTreeUri(context, uri)
             val name = docFile?.name ?: "Library Folder"

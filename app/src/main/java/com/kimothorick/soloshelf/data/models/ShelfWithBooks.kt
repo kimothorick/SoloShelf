@@ -9,7 +9,7 @@ data class ShelfWithBooks(
     @Relation(
         parentColumn = "shelfId",
         entityColumn = "bookId",
-        associateBy = Junction(ShelfBookCrossRef::class)
+        associateBy = Junction(ShelfBookCrossRef::class),
     )
-    val books: List<Book>
+    val books: List<Book>,
 )

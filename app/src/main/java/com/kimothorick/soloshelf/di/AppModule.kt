@@ -1,7 +1,6 @@
 package com.kimothorick.soloshelf.di
 
 import android.content.Context
-import androidx.room.Room
 import coil3.ImageLoader
 import coil3.util.DebugLogger
 import com.kimothorick.soloshelf.data.BookDatabase
@@ -46,11 +45,11 @@ object AppModule {
     @Singleton
     fun provideImageLoader(
         @ApplicationContext context: Context,
-    ): ImageLoader {
-        return ImageLoader.Builder(context)
+    ): ImageLoader =
+        ImageLoader
+            .Builder(context)
             .logger(DebugLogger())
             .build()
-    }
 
     @Provides
     @Singleton
@@ -81,7 +80,7 @@ object AppModule {
             context,
             httpClient = httpClient,
             assetRetriever = assetRetriever,
-            pdfFactory = pdfDocumentFactory
+            pdfFactory = pdfDocumentFactory,
         )
         return PublicationOpener(parser)
     }
@@ -91,8 +90,9 @@ object AppModule {
     fun providePublicationRetriever(
         @ApplicationContext context: Context,
         publicationOpener: PublicationOpener,
-    ): PublicationRetriever = PublicationRetriever(
-        context,
-        publicationOpener = publicationOpener,
-    )
+    ): PublicationRetriever =
+        PublicationRetriever(
+            context,
+            publicationOpener = publicationOpener,
+        )
 }

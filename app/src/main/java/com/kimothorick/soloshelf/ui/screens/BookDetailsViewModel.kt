@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.readium.r2.shared.publication.Link
@@ -33,10 +32,12 @@ class BookDetailsViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val book: StateFlow<Book?> = bookId
         .flatMapLatest { id ->
-            if (id == null) flowOf(null)
-            else bookRepository.getBookById(id)
-        }
-        .flatMapLatest { dbBook ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                bookRepository.getBookById(id)
+            }
+        }.flatMapLatest { dbBook ->
             flow {
                 emit(dbBook)
                 if (dbBook != null && dbBook.synopsis.isNullOrBlank()) {
@@ -55,8 +56,11 @@ class BookDetailsViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val bookAndProgress: StateFlow<BookAndProgress?> = bookId
         .flatMapLatest { id ->
-            if (id == null) flowOf(null)
-            else bookRepository.getBookAndProgressById(id)
+            if (id == null) {
+                flowOf(null)
+            } else {
+                bookRepository.getBookAndProgressById(id)
+            }
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -66,10 +70,12 @@ class BookDetailsViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val tableOfContents: StateFlow<List<Link>> = bookId
         .flatMapLatest { id ->
-            if (id == null) flowOf(null)
-            else bookRepository.getBookById(id)
-        }
-        .flatMapLatest { book ->
+            if (id == null) {
+                flowOf(null)
+            } else {
+                bookRepository.getBookById(id)
+            }
+        }.flatMapLatest { book ->
             flow {
                 if (book != null) {
                     emit(metadataExtractor.getTableOfContents(book))
@@ -83,20 +89,25 @@ class BookDetailsViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
-    val shelves: StateFlow<List<ShelfWithBooks>> = bookRepository.getShelvesWithBooks()
+    val shelves: StateFlow<List<ShelfWithBooks>> = bookRepository
+        .getShelvesWithBooks()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList(),
         )
 
-    fun setBookId(id: Long) {
+    fun setBookId(
+        id: Long,
+    ) {
         if (bookId.value != id) {
             bookId.value = id
         }
     }
 
-    fun deleteBook(bookId: Long) {
+    fun deleteBook(
+        bookId: Long,
+    ) {
         viewModelScope.launch {
             bookRepository.getBookByIdOnce(bookId)?.let {
                 bookRepository.deleteBook(it)
@@ -104,41 +115,55 @@ class BookDetailsViewModel @Inject constructor(
         }
     }
 
-    fun addBookToShelf(bookId: Long, shelfId: Long) {
+    fun addBookToShelf(
+        bookId: Long,
+        shelfId: Long,
+    ) {
         viewModelScope.launch {
             bookRepository.insertShelfBookCrossRef(
-                ShelfBookCrossRef(shelfId = shelfId, bookId = bookId)
+                ShelfBookCrossRef(shelfId = shelfId, bookId = bookId),
             )
         }
     }
 
-    fun removeBookFromShelf(bookId: Long, shelfId: Long) {
+    fun removeBookFromShelf(
+        bookId: Long,
+        shelfId: Long,
+    ) {
         viewModelScope.launch {
             bookRepository.deleteShelfBookCrossRef(
-                ShelfBookCrossRef(shelfId = shelfId, bookId = bookId)
+                ShelfBookCrossRef(shelfId = shelfId, bookId = bookId),
             )
         }
     }
 
-    fun createShelf(name: String) {
+    fun createShelf(
+        name: String,
+    ) {
         viewModelScope.launch {
             bookRepository.insertShelf(Shelf(name = name))
         }
     }
 
-    fun toggleFavorite(bookId: Long) {
+    fun toggleFavorite(
+        bookId: Long,
+    ) {
         viewModelScope.launch {
             bookRepository.toggleFavorite(bookId)
         }
     }
 
-    fun resetProgress(bookId: Long) {
+    fun resetProgress(
+        bookId: Long,
+    ) {
         viewModelScope.launch {
             bookRepository.resetProgress(bookId)
         }
     }
 
-    fun markFinished(bookId: Long) {
+    fun markFinished(
+        bookId: Long,
+    ) {
         viewModelScope.launch {
             bookRepository.markFinished(bookId)
         }

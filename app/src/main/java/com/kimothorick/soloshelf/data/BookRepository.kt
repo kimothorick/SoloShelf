@@ -13,13 +13,13 @@ import com.kimothorick.soloshelf.data.models.BookWithEbookDetails
 import com.kimothorick.soloshelf.data.models.BookWithHighlights
 import com.kimothorick.soloshelf.data.models.BookWithNotes
 import com.kimothorick.soloshelf.data.models.Bookmark
-import com.kimothorick.soloshelf.data.models.Shelf
-import com.kimothorick.soloshelf.data.models.ShelfBookCrossRef
-import com.kimothorick.soloshelf.data.models.ShelfWithBooks
 import com.kimothorick.soloshelf.data.models.EbookDetails
 import com.kimothorick.soloshelf.data.models.Highlight
 import com.kimothorick.soloshelf.data.models.Note
 import com.kimothorick.soloshelf.data.models.ReadingProgress
+import com.kimothorick.soloshelf.data.models.Shelf
+import com.kimothorick.soloshelf.data.models.ShelfBookCrossRef
+import com.kimothorick.soloshelf.data.models.ShelfWithBooks
 import com.kimothorick.soloshelf.data.preferences.SortOrder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -169,24 +169,31 @@ class BookRepository(
         bookDao.deleteShelf(shelf)
     }
 
-    suspend fun getShelvesWithBooksOnce(): List<ShelfWithBooks> {
-        return bookDao.getShelvesWithBooks().first()
-    }
+    suspend fun getShelvesWithBooksOnce(): List<ShelfWithBooks> = bookDao.getShelvesWithBooks().first()
 
-    suspend fun toggleFavorite(bookId: Long) {
+    suspend fun toggleFavorite(
+        bookId: Long,
+    ) {
         addOrToggleBookToShelfByName(bookId, "Favorites")
     }
 
-    suspend fun resetProgress(bookId: Long) {
+    suspend fun resetProgress(
+        bookId: Long,
+    ) {
         updateBookProgress(bookId, 0f)
     }
 
-    suspend fun markFinished(bookId: Long) {
+    suspend fun markFinished(
+        bookId: Long,
+    ) {
         updateBookProgress(bookId, 100f)
         addBookToShelfByName(bookId, "Finished")
     }
 
-    suspend fun addOrToggleBookToShelfByName(bookId: Long, shelfName: String) {
+    suspend fun addOrToggleBookToShelfByName(
+        bookId: Long,
+        shelfName: String,
+    ) {
         val shelves = getShelvesWithBooksOnce()
         val targetShelf = shelves.find { it.shelf.name.equals(shelfName, ignoreCase = true) }
         val shelfId = if (targetShelf != null) {
@@ -203,7 +210,10 @@ class BookRepository(
         }
     }
 
-    suspend fun addBookToShelfByName(bookId: Long, shelfName: String) {
+    suspend fun addBookToShelfByName(
+        bookId: Long,
+        shelfName: String,
+    ) {
         val shelves = getShelvesWithBooksOnce()
         val targetShelf = shelves.find { it.shelf.name.equals(shelfName, ignoreCase = true) }
         val shelfId = if (targetShelf != null) {
@@ -218,7 +228,10 @@ class BookRepository(
         }
     }
 
-    suspend fun updateBookProgress(bookId: Long, percentage: Float) {
+    suspend fun updateBookProgress(
+        bookId: Long,
+        percentage: Float,
+    ) {
         val existing = bookDao.getBookAndProgressByIdOnce(bookId)
         val rawLastPosition = existing?.progress?.lastPosition ?: "{}"
         val lastPosition = try {
@@ -236,7 +249,7 @@ class BookRepository(
             bookId = bookId,
             lastPosition = lastPosition,
             readPercentage = percentage,
-            lastAccessed = System.currentTimeMillis()
+            lastAccessed = System.currentTimeMillis(),
         )
         bookDao.insertReadingProgress(progress)
     }

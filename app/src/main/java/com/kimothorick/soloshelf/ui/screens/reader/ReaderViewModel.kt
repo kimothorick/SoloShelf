@@ -14,12 +14,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import org.readium.r2.navigator.epub.EpubPreferences
@@ -33,8 +33,13 @@ import org.readium.r2.shared.util.getOrElse
 import javax.inject.Inject
 
 sealed interface NavigationTarget {
-    data class LinkTarget(val link: Link) : NavigationTarget
-    data class LocatorTarget(val locator: Locator) : NavigationTarget
+    data class LinkTarget(
+        val link: Link,
+    ) : NavigationTarget
+
+    data class LocatorTarget(
+        val locator: Locator,
+    ) : NavigationTarget
 }
 
 @HiltViewModel
@@ -45,7 +50,6 @@ class ReaderViewModel @Inject constructor(
     private val readerRepository: ReaderRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
 ) : ViewModel() {
-
     private val _book = MutableStateFlow<Book?>(null)
     val book: StateFlow<Book?> = _book.asStateFlow()
 
@@ -86,7 +90,7 @@ class ReaderViewModel @Inject constructor(
         userPreferencesRepository.readerFontFamily,
         userPreferencesRepository.readerFontSize,
         userPreferencesRepository.readerLineHeight,
-        userPreferencesRepository.readerPageMargins
+        userPreferencesRepository.readerPageMargins,
     ) { theme, fontFamily, fontSize, lineHeight, pageMargins ->
         EpubPreferences(
             theme = when (theme) {
@@ -97,42 +101,56 @@ class ReaderViewModel @Inject constructor(
             fontFamily = fontFamily?.let { FontFamily(it) },
             fontSize = fontSize.toDouble() / 100.0,
             lineHeight = lineHeight.toDouble() / 100.0,
-            pageMargins = pageMargins.toDouble() / 100.0
+            pageMargins = pageMargins.toDouble() / 100.0,
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = EpubPreferences()
+        initialValue = EpubPreferences(),
     )
 
     val readerBrightness = userPreferencesRepository.readerBrightness
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    fun updateReaderTheme(theme: String) {
+    fun updateReaderTheme(
+        theme: String,
+    ) {
         viewModelScope.launch { userPreferencesRepository.updateReaderTheme(theme) }
     }
 
-    fun updateReaderFontFamily(fontFamily: String?) {
+    fun updateReaderFontFamily(
+        fontFamily: String?,
+    ) {
         viewModelScope.launch { userPreferencesRepository.updateReaderFontFamily(fontFamily) }
     }
 
-    fun updateReaderFontSize(size: Int) {
+    fun updateReaderFontSize(
+        size: Int,
+    ) {
         viewModelScope.launch { userPreferencesRepository.updateReaderFontSize(size) }
     }
 
-    fun updateReaderLineHeight(height: Int) {
+    fun updateReaderLineHeight(
+        height: Int,
+    ) {
         viewModelScope.launch { userPreferencesRepository.updateReaderLineHeight(height) }
     }
 
-    fun updateReaderPageMargins(margins: Int) {
+    fun updateReaderPageMargins(
+        margins: Int,
+    ) {
         viewModelScope.launch { userPreferencesRepository.updateReaderPageMargins(margins) }
     }
 
-    fun updateReaderBrightness(brightness: Int?) {
+    fun updateReaderBrightness(
+        brightness: Int?,
+    ) {
         viewModelScope.launch { userPreferencesRepository.updateReaderBrightness(brightness) }
     }
 
-    fun loadBook(bookId: Long) {
+    fun loadBook(
+        bookId: Long,
+    ) {
         // If we are already loading or have loaded this specific book, avoid redundant work.
         // This is crucial for configuration changes (like folding/unfolding) where
         // we want to preserve the publication and current position.
@@ -178,7 +196,9 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
-    private suspend fun openPublication(book: Book) {
+    private suspend fun openPublication(
+        book: Book,
+    ) {
         val url = AbsoluteUrl(book.filePath) ?: run {
             _isLoading.value = false
             return
@@ -217,7 +237,9 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
-    fun onTocItemSelected(link: Link) {
+    fun onTocItemSelected(
+        link: Link,
+    ) {
         viewModelScope.launch {
             _navigationEvent.emit(NavigationTarget.LinkTarget(link))
             _showToc.value = false
@@ -225,7 +247,9 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
-    fun onLocatorSelected(locator: Locator) {
+    fun onLocatorSelected(
+        locator: Locator,
+    ) {
         viewModelScope.launch {
             _navigationEvent.emit(NavigationTarget.LocatorTarget(locator))
             _showToc.value = false
@@ -238,7 +262,9 @@ class ReaderViewModel @Inject constructor(
         _showSettings.value = false
     }
 
-    fun saveProgress(locator: Locator) {
+    fun saveProgress(
+        locator: Locator,
+    ) {
         val currentBook = _book.value ?: return
 
         // Skip the very first emission if it's likely a default Page 1 emission
@@ -246,9 +272,10 @@ class ReaderViewModel @Inject constructor(
         if (isInitialLoad) {
             val initial = _initialLocator.value
             // If we have an initial locator that isn't the start, and this is the start, skip it.
-            if (initial != null && 
-                (initial.locations.totalProgression ?: 0.0) > 0.01 && 
-                (locator.locations.totalProgression ?: 0.0) < 0.01) {
+            if (initial != null &&
+                (initial.locations.totalProgression ?: 0.0) > 0.01 &&
+                (locator.locations.totalProgression ?: 0.0) < 0.01
+            ) {
                 // Keep isInitialLoad = true to wait for the actual jump
                 return
             }
@@ -270,7 +297,7 @@ class ReaderViewModel @Inject constructor(
                 bookId = currentBook.bookId,
                 lastPosition = locator.toJSON().toString(),
                 readPercentage = percentage,
-                lastAccessed = System.currentTimeMillis()
+                lastAccessed = System.currentTimeMillis(),
             )
             bookRepository.insertReadingProgress(progress)
         }

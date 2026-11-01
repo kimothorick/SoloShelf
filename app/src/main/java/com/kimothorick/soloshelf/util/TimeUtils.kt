@@ -36,8 +36,12 @@ object TimeUtils {
     /**
      * Returns a time-based greeting message ("Good Morning", "Good Afternoon", or "Good Evening").
      */
-    fun getGreeting(context: Context): String {
-        val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+    fun getGreeting(
+        context: Context,
+    ): String {
+        val hour = java.util.Calendar
+            .getInstance()
+            .get(java.util.Calendar.HOUR_OF_DAY)
         return when (hour) {
             in 0..11 -> context.getString(R.string.good_morning_greeting)
             in 12..16 -> context.getString(R.string.good_afternoon_greeting)

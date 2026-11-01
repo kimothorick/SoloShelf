@@ -22,21 +22,27 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class PublicationRetriever(
     private val context: Context,
-    private val publicationOpener: PublicationOpener
+    private val publicationOpener: PublicationOpener,
 ) {
     private val cachedPublications = ConcurrentHashMap<String, Publication>()
 
-    suspend fun retrieve(asset: Asset): Try<Publication, Error> = withContext(Dispatchers.IO) {
-        val cacheKey = asset.toString()
-        cachedPublications[cacheKey]?.let { return@withContext Try.success(it) }
+    suspend fun retrieve(
+        asset: Asset,
+    ): Try<Publication, Error> =
+        withContext(Dispatchers.IO) {
+            val cacheKey = asset.toString()
+            cachedPublications[cacheKey]?.let { return@withContext Try.success(it) }
 
-        publicationOpener.open(asset, allowUserInteraction = false)
-            .onSuccess { publication ->
-                cachedPublications[cacheKey] = publication
-            }
-    }
+            publicationOpener
+                .open(asset, allowUserInteraction = false)
+                .onSuccess { publication ->
+                    cachedPublications[cacheKey] = publication
+                }
+        }
 
-    fun close(asset: Asset) {
+    fun close(
+        asset: Asset,
+    ) {
         val cacheKey = asset.toString()
         cachedPublications.remove(cacheKey)?.close()
     }
