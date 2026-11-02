@@ -336,8 +336,7 @@ private fun AboutAppGridButton(
             .fillMaxWidth()
             .clip(
                 shape = MaterialTheme.shapes.extraLarge,
-            )
-            .background(color = SoloShelfTheme.colorScheme.surfaceContainer)
+            ).background(color = SoloShelfTheme.colorScheme.surfaceContainer)
             .clickable(
                 onClick = onClick,
             ).padding(vertical = 10.dp, horizontal = 10.dp),
@@ -393,12 +392,10 @@ fun SupportDevelopmentBanner(
             .fillMaxWidth()
             .clip(
                 shape = MaterialTheme.shapes.extraLarge,
-            )
-            .background(color = SoloShelfTheme.colorScheme.surfaceContainerHighest)
+            ).background(color = SoloShelfTheme.colorScheme.surfaceContainerHighest)
             .clickable(
                 onClick = onClick,
-            )
-            .padding(16.dp),
+            ).padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
