@@ -340,8 +340,7 @@ private fun AboutAppGridButton(
             .background(color = SoloShelfTheme.colorScheme.surfaceContainer)
             .clickable(
                 onClick = onClick,
-            )
-            .padding(vertical = 10.dp, horizontal = 10.dp),
+            ).padding(vertical = 10.dp, horizontal = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
