@@ -37,3 +37,9 @@ google-services.json
 **/.DS_Store
 /gradle/gradle-daemon-jvm.properties
 .hotswan/
+
+# AI Assistant & Artifacts directories
+.artifacts/
+.antigravitycli/
+.antigravity/
+
