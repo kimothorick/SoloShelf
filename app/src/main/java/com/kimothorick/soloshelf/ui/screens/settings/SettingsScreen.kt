@@ -29,7 +29,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,11 +38,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.graphics.shapes.RoundedPolygon
 import com.kimothorick.soloshelf.R
-import com.kimothorick.soloshelf.data.preferences.AppTheme
 import com.kimothorick.soloshelf.ui.components.SoloShelfSegmentedListItem
 import com.kimothorick.soloshelf.ui.components.SoloShelfTopAppBar
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
@@ -53,40 +52,28 @@ import com.kimothorick.soloshelf.util.Constants
 
 @Composable
 fun Settings(
-    viewModel: SettingsViewModel,
+    modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onNavigateToAppearance: () -> Unit,
     onNavigateToLibraryStorage: () -> Unit,
-    onNavigateToEverythingElse: () -> Unit,
-    modifier: Modifier = Modifier,
+    onNavigateToLicenses: () -> Unit,
 ) {
-    val themePreference by viewModel.themePreference.collectAsStateWithLifecycle()
-    val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
-
     SettingsScreenContent(
-        themePreference = themePreference,
-        dynamicColor = dynamicColor,
+        modifier = modifier,
         onBack = onBack,
         onNavigateToAppearance = onNavigateToAppearance,
         onNavigateToLibraryStorage = onNavigateToLibraryStorage,
-        onNavigateToEverythingElse = onNavigateToEverythingElse,
-        onThemeChange = viewModel::setTheme,
-        onDynamicColorChange = viewModel::setDynamicColor,
-        modifier = modifier,
+        onNavigateToLicenses = onNavigateToLicenses,
     )
 }
 
 @Composable
 fun SettingsScreenContent(
-    themePreference: AppTheme,
-    dynamicColor: Boolean,
+    modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onNavigateToAppearance: () -> Unit,
     onNavigateToLibraryStorage: () -> Unit,
-    onNavigateToEverythingElse: () -> Unit,
-    onThemeChange: (AppTheme) -> Unit,
-    onDynamicColorChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
+    onNavigateToLicenses: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
@@ -103,18 +90,26 @@ fun SettingsScreenContent(
     ) { innerPadding ->
         val context = LocalContext.current
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(innerPadding).padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             generalSection(
                 onNavigateToAppearance = onNavigateToAppearance,
                 onNavigateToLibraryStorage = onNavigateToLibraryStorage,
             )
-            otherSection()
+            otherSection(
+                onNavigateToLicenses,
+            )
             aboutAppSection(
-                onNavigateToEverythingElse = onNavigateToEverythingElse,
                 onGitHubLinkClicked = {
                     val intent = Intent(Intent.ACTION_VIEW, Constants.SOLOSHELF_GITHUB_URL.toUri())
+                    context.startActivity(intent)
+                },
+                onReportBugClicked = {
+                    val intent = Intent(Intent.ACTION_VIEW, Constants.SOLOSHELF_GITHUB_ISSUES_URL.toUri())
                     context.startActivity(intent)
                 },
                 onNavigateToDeveloperCredits = {},
@@ -171,7 +166,9 @@ private fun LazyListScope.generalSection(
     }
 }
 
-private fun LazyListScope.otherSection() {
+private fun LazyListScope.otherSection(
+    onNavigateToLicenses: () -> Unit,
+) {
     item {
         SettingsSectionHeader(title = stringResource(R.string.settings_other))
     }
@@ -185,18 +182,26 @@ private fun LazyListScope.otherSection() {
         ) {
             SoloShelfSegmentedListItem(
                 onClick = { /* TODO: Privacy Policy */ },
-                shapes = ListItemDefaults.segmentedShapes(0, 1),
+                shapes = ListItemDefaults.segmentedShapes(0, 2),
                 leadingContent = { Icon(painterResource(R.drawable.ic_privacy_tip), contentDescription = null) },
                 headlineText = stringResource(R.string.privacy_policy),
                 supportingText = "",
+            )
+            SoloShelfSegmentedListItem(
+                onClick = onNavigateToLicenses,
+                shapes = ListItemDefaults.segmentedShapes(1, 2),
+                leadingContent = { Icon(painterResource(R.drawable.ic_globe), contentDescription = null) },
+                headlineText = stringResource(R.string.licenses),
+                supportingText = stringResource(R.string.open_source_licenses),
             )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private fun LazyListScope.aboutAppSection(
-    onNavigateToEverythingElse: () -> Unit,
     onGitHubLinkClicked: () -> Unit,
+    onReportBugClicked: () -> Unit,
     onNavigateToDeveloperCredits: () -> Unit,
     onSupportDevelopmentClicked: () -> Unit,
 ) {
@@ -223,12 +228,14 @@ private fun LazyListScope.aboutAppSection(
                         iconRes = R.drawable.ic_github,
                         onClick = onGitHubLinkClicked,
                         modifier = Modifier.weight(1f),
+                        shape = MaterialShapes.Cookie4Sided,
                     )
                     AboutAppGridButton(
                         title = stringResource(R.string.rate_app),
                         iconRes = R.drawable.ic_thumb_up,
                         onClick = { /* TODO: rate app */ },
                         modifier = Modifier.weight(1f),
+                        shape = MaterialShapes.Pentagon,
                     )
                 }
                 Row(
@@ -237,28 +244,27 @@ private fun LazyListScope.aboutAppSection(
                 ) {
                     AboutAppGridButton(
                         title = stringResource(R.string.feedback),
-                        iconRes = R.drawable.ic_mail,
-                        onClick = { /* TODO: feedback */ },
+                        iconRes = R.drawable.ic_bug_report,
+                        onClick = onReportBugClicked,
                         modifier = Modifier.weight(1f),
+                        shape = MaterialShapes.Arch,
                     )
                     AboutAppGridButton(
                         title = stringResource(R.string.developer_credits),
                         iconRes = R.drawable.ic_info,
                         onClick = onNavigateToDeveloperCredits,
                         modifier = Modifier.weight(1f),
+                        shape = MaterialShapes.Clover8Leaf,
                     )
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.fillMaxWidth().padding(start = 8.dp),
-                ) {
-                    Text(
-                        text = stringResource(R.string.open_source_note),
-                        style = SoloShelfTheme.typography.bodySmall,
-                        color = SoloShelfTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+
+                Text(
+                    text = stringResource(R.string.open_source_note),
+                    style = SoloShelfTheme.typography.bodySmall,
+                    color = SoloShelfTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
@@ -288,7 +294,10 @@ private fun AppVersionFooter(
     ) {
         if (showIcon == true) {
             Box(
-                modifier = Modifier.size(64.dp).clip(CircleShape).background(SoloShelfTheme.colorScheme.onSurface),
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(SoloShelfTheme.colorScheme.onSurface),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
@@ -313,27 +322,35 @@ private fun AppVersionFooter(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AboutAppGridButton(
     title: String,
     iconRes: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    shape: RoundedPolygon? = null,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(
                 shape = MaterialTheme.shapes.extraLarge,
-            ).background(color = SoloShelfTheme.colorScheme.surfaceContainer)
+            )
+            .background(color = SoloShelfTheme.colorScheme.surfaceContainer)
             .clickable(
                 onClick = onClick,
-            ).padding(vertical = 10.dp, horizontal = 10.dp),
+            )
+            .padding(vertical = 10.dp, horizontal = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         Box(
-            modifier = Modifier.size(40.dp).clip(CircleShape).background(SoloShelfTheme.colorScheme.primary),
+            modifier = Modifier
+                .padding(8.dp)
+                .size(48.dp)
+                .clip(shape = shape?.toShape() ?: CircleShape)
+                .background(SoloShelfTheme.colorScheme.primary),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -377,18 +394,22 @@ fun SupportDevelopmentBanner(
             .fillMaxWidth()
             .clip(
                 shape = MaterialTheme.shapes.extraLarge,
-            ).background(color = SoloShelfTheme.colorScheme.surfaceContainerHighest)
+            )
+            .background(color = SoloShelfTheme.colorScheme.surfaceContainerHighest)
             .clickable(
                 onClick = onClick,
-            ).padding(16.dp),
+            )
+            .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = modifier.size(48.dp).background(
-                color = Color(0xFFFFDD00),
-                shape = MaterialShapes.Pill.toShape(),
-            ),
+            modifier = modifier
+                .size(48.dp)
+                .background(
+                    color = Color(0xFFFFDD00),
+                    shape = MaterialShapes.Pill.toShape(),
+                ),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -429,14 +450,10 @@ fun SupportDevelopmentBannerPreview() {
 fun SettingsScreenPreview() {
     SoloShelfTheme {
         SettingsScreenContent(
-            themePreference = AppTheme.AUTO,
-            dynamicColor = true,
             onBack = {},
             onNavigateToAppearance = {},
             onNavigateToLibraryStorage = {},
-            onNavigateToEverythingElse = {},
-            onThemeChange = {},
-            onDynamicColorChange = {},
+            onNavigateToLicenses = {},
         )
     }
 }
