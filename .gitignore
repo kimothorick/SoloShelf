@@ -39,7 +39,6 @@ google-services.json
 .hotswan/
 
 # AI Assistant & Artifacts directories
-.artifacts/
-.antigravitycli/
-.antigravity/
-
+/.artifacts/
+/.antigravitycli/
+/.antigravity/
