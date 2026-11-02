@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.screenshot)
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.stability.analyzer)
+    alias(libs.plugins.about.libraries)
 }
 
 android {
@@ -175,4 +176,6 @@ dependencies {
     implementation(libs.androidx.documentfile)
 
     implementation(libs.jebml)
+    implementation(libs.aboutlibraries.core)
+    implementation(libs.aboutlibraries.compose.m3)
 }

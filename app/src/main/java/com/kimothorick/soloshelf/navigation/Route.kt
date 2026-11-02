@@ -39,7 +39,7 @@ sealed interface Route :
 
     @Serializable
     @Parcelize
-    data object EverythingElse : Route, NavKey
+    data object Licenses : Route, NavKey
 
     @Serializable
     @Parcelize

@@ -21,9 +21,9 @@ import com.kimothorick.soloshelf.ui.screens.BookDetails
 import com.kimothorick.soloshelf.ui.screens.main.MainScreen
 import com.kimothorick.soloshelf.ui.screens.reader.ReaderScreen
 import com.kimothorick.soloshelf.ui.screens.settings.AppearanceScreen
-import com.kimothorick.soloshelf.ui.screens.settings.EverythingElseScreen
 import com.kimothorick.soloshelf.ui.screens.settings.LibraryFoldersScreen
 import com.kimothorick.soloshelf.ui.screens.settings.LibraryStorageScreen
+import com.kimothorick.soloshelf.ui.screens.settings.LicensesScreen
 import com.kimothorick.soloshelf.ui.screens.settings.Settings
 import com.kimothorick.soloshelf.ui.screens.settings.SettingsTwoPaneScene
 import com.kimothorick.soloshelf.ui.screens.settings.SettingsViewModel
@@ -53,7 +53,6 @@ fun NavigationRoot(
                 val isWide = windowSizeClass.isAtLeastMedium
 
                 Settings(
-                    viewModel = settingsViewModel,
                     onBack = {
                         if (isWide) {
                             val settingsRoutes = setOf(
@@ -61,7 +60,7 @@ fun NavigationRoot(
                                 Route.Appearance,
                                 Route.LibraryStorage,
                                 Route.LibraryFolders,
-                                Route.EverythingElse,
+                                Route.Licenses,
                             )
                             rootBackStack.removeAll { it in settingsRoutes }
                             if (!rootBackStack.contains(Route.Library)) {
@@ -77,8 +76,8 @@ fun NavigationRoot(
                     onNavigateToLibraryStorage = {
                         rootBackStack.addSettingsDetail(Route.LibraryStorage)
                     },
-                    onNavigateToEverythingElse = {
-                        rootBackStack.addSettingsDetail(Route.EverythingElse)
+                    onNavigateToLicenses = {
+                        rootBackStack.addSettingsDetail(Route.Licenses)
                     },
                 )
             }
@@ -107,8 +106,8 @@ fun NavigationRoot(
                 )
             }
 
-            entry<Route.EverythingElse>(metadata = SettingsTwoPaneScene.detailPane()) {
-                EverythingElseScreen(
+            entry<Route.Licenses>(metadata = SettingsTwoPaneScene.detailPane()) {
+                LicensesScreen(
                     onBack = { rootBackStack.removeLastOrNull() },
                 )
             }
@@ -223,7 +222,7 @@ fun NavigationRoot(
 private fun MutableList<NavKey>.addSettingsDetail(
     detail: Route,
 ) {
-    val settingsDetails = listOf(Route.Appearance, Route.LibraryStorage, Route.EverythingElse)
+    val settingsDetails = listOf(Route.Appearance, Route.LibraryStorage, Route.Licenses)
     removeAll { it in settingsDetails }
     add(detail)
 }

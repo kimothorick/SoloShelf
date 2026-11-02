@@ -80,7 +80,6 @@ fun LibraryStorageScreenContent(
                 scrollBehavior = scrollBehavior,
             )
         },
-        contentWindowInsets = WindowInsets(0.dp),
         containerColor = SoloShelfTheme.colorScheme.surfaceContainer,
     ) { innerPadding ->
 

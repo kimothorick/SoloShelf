@@ -83,7 +83,7 @@
     <string name="everything_else_desc">App info &amp; credits</string>
 
     <string name="support_feedback">Support &amp; Feedback</string>
-    <string name="feedback">Feedback</string>
+    <string name="feedback">Report bugs</string>
     <string name="feedback_desc">Even the best apps have bugs. Report yours here!</string>
     <string name="rate_app">Rate app</string>
     <string name="rate_app_desc">Give us a rating on the Play Store</string>
@@ -195,8 +195,6 @@
     <string name="about">About</string>
     <string name="no_contents_available">No contents available</string>
 
-    <!--Playback speed-->
-    <string name="playback_1x">1x</string>
     <string name="no_books_added">No books added yet</string>
     <string name="reflowable">Reflowable</string>
     <string name="layout">Layout</string>
@@ -204,4 +202,7 @@
     <string name="good_morning_greeting">Good Morning</string>
     <string name="good_afternoon_greeting">Good Afternoon</string>
     <string name="good_evening_greeting">Good Evening</string>
+    <string name="open_source_licenses">Open source licenses and libraries used</string>
+    <string name="licenses">Licenses</string>
+    <string name="licenses_and_libraries">Licenses &amp; Libraries</string>
 </resources>

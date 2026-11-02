@@ -157,7 +157,6 @@ fun AppearanceScreenContent(
             )
         },
         containerColor = SoloShelfTheme.colorScheme.surfaceContainer,
-        contentWindowInsets = WindowInsets(0.dp),
     ) { innerPadding ->
         Column(
             modifier = Modifier
