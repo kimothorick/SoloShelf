@@ -23,6 +23,10 @@ object Constants {
     const val SOLOSHELF_GITHUB_URL = "https://github.com/kimothorick/SoloShelf"
     const val SOLOSHELF_GITHUB_ISSUES_URL = "https://github.com/kimothorick/SoloShelf/issues"
     const val DONATION_URL = "https://buymeacoffee.com/kimothorick"
+    const val RICK_GITHUB_URL = "https://github.com/kimothorick"
+    const val RICK_THREADS_URL = "https://www.threads.com/@kimothorick"
+    const val RICK_INSTAGRAM_URL = "https://www.instagram.com/kimothorick"
+    const val RICK_TWITTER_URL = "https://x.com/kimothorick"
 }
 
 val Format.isEbook: Boolean

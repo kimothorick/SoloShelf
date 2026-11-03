@@ -70,8 +70,9 @@ fun SortBottomSheetContent(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = SoloShelfTheme.colorScheme.surfaceContainerLowest,
-            ).padding(horizontal = 24.dp)
+                color = SoloShelfTheme.colorScheme.surfaceContainer,
+            )
+            .padding(horizontal = 24.dp)
             .padding(bottom = 32.dp),
     ) {
         Text(
@@ -127,14 +128,19 @@ private fun SortBottomSheetPreview() {
     SoloShelfTheme {
         Surface {
             Column(
-                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Spacer(
-                    Modifier.padding(vertical = 12.dp).size(width = 32.dp, height = 4.dp).background(
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                        shape = CircleShape,
-                    ),
+                    Modifier
+                        .padding(vertical = 12.dp)
+                        .size(width = 32.dp, height = 4.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            shape = CircleShape,
+                        ),
                 )
                 SortBottomSheetContent(
                     currentSortOrder = SortOrder.LAST_READ_DESC,

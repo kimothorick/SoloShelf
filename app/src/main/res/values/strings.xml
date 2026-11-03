@@ -205,4 +205,14 @@
     <string name="open_source_licenses">Open source licenses and libraries used</string>
     <string name="licenses">Licenses</string>
     <string name="licenses_and_libraries">Licenses &amp; Libraries</string>
+
+    <!--Dev Credits Strings-->
+    <string name="dev_name">Rick Muigo</string>
+    <string name="dev_rank">Lead Developer</string>
+    <string name="dev_description">Building Android apps by day. Fueled by coffee, soccer, capturing moments through a lens, and late-night World of Warcraft raids.</string>
+    <string name="buy_me_a_coffee">Buy me a coffee</string>
+    <string name="instagram">Instagram</string>
+    <string name="threads">Threads</string>
+    <string name="twitter">Twitter</string>
+    <string name="made_with">Made with love in Texas ❤️</string>
 </resources>

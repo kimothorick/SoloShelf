@@ -298,7 +298,7 @@ fun MainScreen(
                 ModalBottomSheet(
                     onDismissRequest = { isSortSheetVisible = false },
                     sheetState = sheetState,
-                    containerColor = SoloShelfTheme.colorScheme.surfaceContainerLowest,
+                    containerColor = SoloShelfTheme.colorScheme.surfaceContainer,
                     dragHandle = {
                         Spacer(
                             Modifier
