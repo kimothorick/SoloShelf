@@ -29,6 +29,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.graphics.shapes.RoundedPolygon
 import com.kimothorick.soloshelf.R
+import com.kimothorick.soloshelf.ui.components.DeveloperCreditsBottomSheet
 import com.kimothorick.soloshelf.ui.components.SoloShelfSegmentedListItem
 import com.kimothorick.soloshelf.ui.components.SoloShelfTopAppBar
 import com.kimothorick.soloshelf.ui.theme.SoloShelfTheme
@@ -76,6 +81,7 @@ fun SettingsScreenContent(
     onNavigateToLicenses: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    var isDeveloperCreditsVisible by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -112,7 +118,7 @@ fun SettingsScreenContent(
                     val intent = Intent(Intent.ACTION_VIEW, Constants.SOLOSHELF_GITHUB_ISSUES_URL.toUri())
                     context.startActivity(intent)
                 },
-                onNavigateToDeveloperCredits = {},
+                onNavigateToDeveloperCredits = { isDeveloperCreditsVisible = true },
                 onSupportDevelopmentClicked = {
                     val intent = Intent(Intent.ACTION_VIEW, Constants.DONATION_URL.toUri())
                     context.startActivity(intent)
@@ -122,6 +128,12 @@ fun SettingsScreenContent(
             item {
                 Spacer(modifier = Modifier.height(32.dp))
             }
+        }
+
+        if (isDeveloperCreditsVisible) {
+            DeveloperCreditsBottomSheet(
+                onDismiss = { isDeveloperCreditsVisible = false },
+            )
         }
     }
 }
