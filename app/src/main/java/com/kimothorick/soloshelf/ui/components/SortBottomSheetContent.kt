@@ -71,8 +71,7 @@ fun SortBottomSheetContent(
             .fillMaxWidth()
             .background(
                 color = SoloShelfTheme.colorScheme.surfaceContainer,
-            )
-            .padding(horizontal = 24.dp)
+            ).padding(horizontal = 24.dp)
             .padding(bottom = 32.dp),
     ) {
         Text(
